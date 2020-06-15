@@ -54,7 +54,7 @@ public class Player : MonoBehaviour
         MovePlayer();
 
         // Call Animations Function
-        PlayAnimation();
+        //PlayAnimation();
 
         // Move the Character Controller
         character.Move(velocity * Time.deltaTime);
@@ -152,14 +152,14 @@ public class Player : MonoBehaviour
                 // Check For Jump Input Before Jumping And Player Can Jump Again.
                 if (jumpRequest)
                 {
-                    GetComponent<Animator>().SetBool("IsJumping", true);
+                    //GetComponent<Animator>().SetBool("IsJumping", true);
                     // Get The Jump Height On The Y Axis
                     velocity.y = jumpHeight;
                     jumpRequest = false;
                 }
                 else
                 {
-                    GetComponent<Animator>().SetBool("IsJumping", false);
+                    //GetComponent<Animator>().SetBool("IsJumping", false);
                 }
             }
         }
@@ -188,7 +188,7 @@ public class Player : MonoBehaviour
         }
         
     }
-
+/*
     private void PlayAnimation()
     {
         if (moveDirection.magnitude > 0f && isSprinting == true)
@@ -213,4 +213,5 @@ public class Player : MonoBehaviour
             GetComponent<Animator>().SetBool("IsEmote", false);
         }
     }
+*/
 }
