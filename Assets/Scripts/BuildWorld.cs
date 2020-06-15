@@ -125,20 +125,20 @@ public class BuildWorld : MonoBehaviour
             {
                 if (pathDirectionY == 0 && (mapGrid[currentPathX, currentPathY + pathDirectionX] < 0 || mapGrid[currentPathX, currentPathY - pathDirectionX] < 0)) // If Moving In The X Direction
                 {
-                    if (mapGrid[currentPathX + pathDirectionX, currentPathY + pathDirectionY] >= 0)
+                    if (mapGrid[currentPathX + pathDirectionX, currentPathY + pathDirectionY] >= 0 && mapGrid[currentPathX + pathDirectionX + pathDirectionY, currentPathY + pathDirectionY + pathDirectionX] >= 0 && mapGrid[currentPathX + pathDirectionX - pathDirectionY, currentPathY + pathDirectionY - pathDirectionX] >= 0)
                     {
                         mapGrid[currentPathX, currentPathY] = -1;
-                        mapGrid[currentPathX + pathDirectionX, currentPathY] = -4;
+                        //mapGrid[currentPathX + pathDirectionX, currentPathY] = -4;
                     }
                     pathFinished = true;
                     break;
                 }
                 else if (pathDirectionX == 0 && (mapGrid[currentPathX + pathDirectionY, currentPathY] < 0 || mapGrid[currentPathX - pathDirectionY, currentPathY] < 0)) // If Moving In The Y Direction
                 {
-                    if (mapGrid[currentPathX + pathDirectionX, currentPathY + pathDirectionY] >= 0)
+                    if (mapGrid[currentPathX + pathDirectionX, currentPathY + pathDirectionY] >= 0 && mapGrid[currentPathX + pathDirectionX + pathDirectionY, currentPathY + pathDirectionY + pathDirectionX] >= 0 && mapGrid[currentPathX + pathDirectionX - pathDirectionY, currentPathY + pathDirectionY - pathDirectionX] >= 0)
                     {
                         mapGrid[currentPathX, currentPathY] = -1;
-                        mapGrid[currentPathX, currentPathY + pathDirectionY] = -4;
+                        //mapGrid[currentPathX, currentPathY + pathDirectionY] = -4;
                     }
                     pathFinished = true;
                     break;
@@ -204,7 +204,7 @@ public class BuildWorld : MonoBehaviour
         GenerateBorder(borderX, borderX, borderY, borderY);
         // Build Interior Borders Based On Random Values
         // Left Width | Right Width | Bottom Height | Top Height
-        for (int b = 1; b <= GetRandom(5,8); b++)
+        for (int b = 1; b <= GetRandom(1,12); b++)
         {
             GenerateBorder(borderX + GetRandom(((b * 10) / GetRandom(5, 10)), (b * 10)), borderX + GetRandom(((b * 10) / GetRandom(5, 10)), (b * 10)), borderY + GetRandom(((b * 10) / GetRandom(5, 10)), (b * 10)), borderY + GetRandom(((b * 10) / GetRandom(5, 10)), (b * 10)));
         }

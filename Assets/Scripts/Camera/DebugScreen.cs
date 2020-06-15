@@ -18,7 +18,7 @@ public class DebugScreen : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        world = GameObject.Find("World").GetComponent<World>();
+        world = GameObject.Find("Tile").GetComponent<World>();
         player = GameObject.Find("Player").GetComponent<Player>();
         text = GetComponent<Text>();
     }
