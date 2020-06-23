@@ -35,7 +35,7 @@ public class BuildWorld : MonoBehaviour
             DestroyTile();
             ApplyMapNoise();
             GenerateRoads();
-            GenerateTiles();
+            StartCoroutine(GenerateTiles());
         }
     }
 
@@ -273,7 +273,7 @@ public class BuildWorld : MonoBehaviour
         }
     }
 
-    void GenerateTiles()
+    IEnumerator GenerateTiles()
     {
         
         // Populate Tiles
@@ -281,6 +281,8 @@ public class BuildWorld : MonoBehaviour
         {
             for (int w = 0; w < mapGridSize.x; w++)
             {
+                yield return new WaitForSeconds(.05f);
+
                 string newTileError = "-";
                 int result = mapGrid[w, h];
                 Vector3 pos = new Vector3(w * buildingFootprint, 0,  h * buildingFootprint);
@@ -369,17 +371,21 @@ public class BuildWorld : MonoBehaviour
                 }
                 else if (result >= 0)
                 {
+                    /*
                     if ((w >= (borderX + 1) && h >= (borderY + 1) && w < (mapGridSize.x - (borderX + 1)) && h < (mapGridSize.y - (borderY + 1))) && (mapGrid[w + 1, h] < 0 || mapGrid[w - 1, h] < 0 || mapGrid[w, h + 1] < 0 || mapGrid[w, h - 1] < 0))
                     {
-                        if (result < 5)
+                    */
+                        if (result < 6)
                         prefab[w, h] = Instantiate(buildings[0], pos, Quaternion.identity);
                         else
                         prefab[w, h] = Instantiate(buildings[1], pos, Quaternion.identity);
+                        /*
                     }
                     else
                     {
                         prefab[w, h] = Instantiate(buildings[1], pos, Quaternion.identity);
                     }
+                    */
                 }
                 else
                 {
