@@ -174,11 +174,13 @@ public class Player : MonoBehaviour
                 {
                     // Multiply Vector3 "velocity" By The Player's Sprint Speed 
                     velocity *= sprintSpeed;
+                    GetComponent<Animator>().SetBool("IsRunning", true);
                 }
                 else
                 {
                     // Multiply Vector3 "velocity" By The Player's Walk Speed 
                     velocity *= walkSpeed;
+                    GetComponent<Animator>().SetBool("IsRunning", false);
                 }
 
                 // Check For Jump Input Before Jumping And Player Can Jump Again.
@@ -231,6 +233,7 @@ public class Player : MonoBehaviour
         {
             GetComponent<Animator>().SetBool("IsWalking", false);
         }
+        
 
         if (Input.GetKeyDown(KeyCode.R))
         {
