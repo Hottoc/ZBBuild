@@ -8,15 +8,17 @@ public class PlayerCamera : MonoBehaviour
 
     World world;
 
-    public float distance = 100.0f;
-    public float xSpeed = 5.0f;
-    public float ySpeed = 100.0f;
+    public float xSpeed = 5.0f; //Speed of Camera Yaw
+    public float ySpeed = 100.0f; //Speed of Camera Pitch
 
-    private float yMinLimit = 0.0f;
-    private float yMaxLimit = 80.0f;
+    //Camera Pitch Variables
+    private float yMinLimit = 0.0f; //Min Distance on Camera Pitch
+    private float yMaxLimit = 80.0f; //Max Distance on Camera Pitch
 
-    private float distanceMin = 25.0f;
-    private float distanceMax = 100.0f;
+    //Camera Distance/Zoom Variables
+    private float distance = 30.0f;
+    private float distanceMin = 10.0f; //Min Distance on Camera Zoom
+    private float distanceMax = 30.0f; //Max Distance on Camera Zoom
 
     float x = 0.0f;
     float y = 0.0f;
@@ -24,16 +26,15 @@ public class PlayerCamera : MonoBehaviour
     // Use this for initialization
     private void Start()
     {
-
         Vector3 angles = transform.eulerAngles;
 
         x = angles.y;
         y = angles.x;
-
     }
 
     void LateUpdate()
     {
+        //Update This with Switch to improve performance.
         
         if (target)
         {
@@ -41,6 +42,8 @@ public class PlayerCamera : MonoBehaviour
             {
                 x += Input.GetAxis("Mouse X") * xSpeed * distance * 0.02f;
                 y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+
+                distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * 40, distanceMin, distanceMax);
             }
             else if (Input.GetKeyDown(KeyCode.Q))
             {
@@ -65,20 +68,20 @@ public class PlayerCamera : MonoBehaviour
             y = ClampAngle(y, yMinLimit, yMaxLimit);
 
             
-            
             Quaternion rotation = Quaternion.Euler(y, x, 0);
-            if (Input.GetMouseButton(1))
-            {
-                distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * 40, distanceMin, distanceMax);
-            }
+
+            /***********
+            //Uncomment to prevent camera from moving through objects with colliders
             RaycastHit hit;
 
+            
             if (Physics.Linecast(target.position, transform.position, out hit))
             {
 
                 distance -= hit.distance;
 
             }
+            */
 
             Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
 
