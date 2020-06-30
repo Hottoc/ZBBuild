@@ -35,7 +35,8 @@ public class BuildWorld : MonoBehaviour
             DestroyTile();
             ApplyMapNoise();
             GenerateRoads();
-            StartCoroutine(GenerateTiles());
+            //StartCoroutine(GenerateTiles());
+            GenerateTiles();
         }
     }
 
@@ -273,7 +274,7 @@ public class BuildWorld : MonoBehaviour
         }
     }
 
-    IEnumerator GenerateTiles()
+    public void GenerateTiles()
     {
         
         // Populate Tiles
@@ -281,7 +282,7 @@ public class BuildWorld : MonoBehaviour
         {
             for (int w = 0; w < mapGridSize.x; w++)
             {
-                yield return new WaitForSeconds(.05f);
+                //yield return new WaitForSeconds(.05f);
 
                 string newTileError = "-";
                 int result = mapGrid[w, h];

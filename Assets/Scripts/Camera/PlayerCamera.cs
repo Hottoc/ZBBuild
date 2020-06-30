@@ -57,11 +57,10 @@ public class PlayerCamera : MonoBehaviour
             }
 
             
-            // Reset The Value Of Angle X To 0 When Exceeding A 360 Degree Angle.
+            // Reset The Value Of Rotation Angle To 0 When Exceeding A 360 Degree Angle.
             if (x > 360.0f || x < -360.0f)
             {
                 x = 0;
-
             }
 
 
