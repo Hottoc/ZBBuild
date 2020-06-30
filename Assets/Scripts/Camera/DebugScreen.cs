@@ -62,7 +62,7 @@ public class DebugScreen : MonoBehaviour
         debugText += "\n";
         debugText += "Is running: " + player.isSprinting;
         debugText += "\n";
-        debugText += "Can move: " + player.playerCanMove;
+        //debugText += "Can move: " + player.playerCanMove;
         debugText += "\n\n";
 
         // CAMERA

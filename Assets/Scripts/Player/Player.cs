@@ -15,24 +15,34 @@ public class Player : MonoBehaviour
     // Objects
     private GameObject playerCamera, mouseCursor;
 
+    private ControllerColliderHit _contact;
+    RaycastHit hit;
+
     // Public Floats
     public float walkSpeed = 5.0f;
     public float sprintSpeed = 10.0f;
     public float rotationSpeed = 240.0f;
-    public float jumpHeight = 7.0f;
+    //public float jumpHeight = 7.0f;
     public float pushPower = 2.0f;
     public float weight = 6.0f;
 
+    //Test
+    [SerializeField] private float jumpSpeed = 15.0f;
+    public float terminalVelocity = -10.0f;
+    public float minFall = -1.5f;
+    public float vertSpeed;
+
+
     // Private Floats
     private float horizontal, vertical;
-    private float gravity = -20.0f;
+    public float gravity = -20.0f;
     
     // Vector3s
     private Vector3 velocity, moveDirection, camForwardDirection;
 
     // Bools
     [HideInInspector]
-    public bool playerCanMove, jumpRequest, isSprinting, isGrounded;
+    public bool jumpRequest, isSprinting, isGrounded;
 
     private void Start ()
     {
@@ -41,8 +51,7 @@ public class Player : MonoBehaviour
         world = GameObject.Find("World").GetComponent<World>();
         playerCamera = GameObject.Find("Player Camera");
 
-        headBone = GameObject.Find("Player/HeadBone").transform;
-        rArmBone = GameObject.Find("Player/RootBone/TorsoBone/RightArmBone").transform;
+        vertSpeed = minFall;
     }
 
     private void LateUpdate()
@@ -51,7 +60,6 @@ public class Player : MonoBehaviour
     }
     private void Update()
     {
-        var origin = headBone.position;
         // Call Player Movement Function
         MovePlayer();
 
@@ -79,7 +87,6 @@ public class Player : MonoBehaviour
             return;
         }
         
-
         // Calculate push direction from move direction,
         // we only push objects to the sides never up and down
         Vector3 pushDir = new Vector3(hit.moveDirection.x, 0, hit.moveDirection.z);
@@ -90,6 +97,16 @@ public class Player : MonoBehaviour
         // Apply the push
         body.velocity = pushDir * pushPower;
         //body.AddForceAtPosition(force, hit.point);
+
+        _contact = hit;
+    }
+
+    public enum myTest
+    {
+        Idle,
+        Jump,
+        Walk,
+        Run
     }
 
     private void GetPlayerInputs ()
@@ -98,11 +115,11 @@ public class Player : MonoBehaviour
         horizontal = Input.GetAxis("Horizontal");
         vertical = Input.GetAxis("Vertical");
 
-        if (Input.GetButtonDown("Sprint"))
+        if (Input.GetButtonDown("Run"))
         {
             isSprinting = true;
         }
-        else if (Input.GetButtonUp("Sprint"))
+        else if (Input.GetButtonUp("Run"))
         {
             isSprinting = false;
         }
@@ -115,22 +132,8 @@ public class Player : MonoBehaviour
         {
             jumpRequest = false;
         }
-        // Open Inventory When Pressing The "I" Key
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            world.inUI = !world.inUI;
 
-            Debug.Log("Inventory Access: " + world.inUI);
-        }
-        // Disable The Player's Ability To Move If Opening Inventory.
-        if (!world.inUI)
-        {
-            playerCanMove = true;
-        }
-        else
-        {
-            playerCanMove = false;
-        }
+        
     }
     private void MovePlayer()
     {
@@ -144,94 +147,89 @@ public class Player : MonoBehaviour
         camForwardDirection = Vector3.Scale(playerCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
 
         // Check If Player Can Move And Disable X And Z Movement If False
-        if (playerCanMove)
-        {
-            // Calculate the forward vector
+            // Calculate the forward vector 
             moveDirection = vertical * camForwardDirection + horizontal * playerCamera.transform.right;
 
-            // Normalize Player Speed When Strafing.
-            if (moveDirection.magnitude > 1.0f)
-            {
-                moveDirection.Normalize();
-            }
-
-            // Calculate The Forward Rotation Of The Player
-            // Transform The Vector3 "moveDirection" From World Space To Local Space
-            moveDirection = transform.InverseTransformDirection(moveDirection);
-
-            // Get Euler angles To 
-            float turnAmount = Mathf.Atan2(moveDirection.x, moveDirection.z);
-
-            // Rotate The Player Along The Y-Axis
-            transform.Rotate(0, turnAmount * rotationSpeed * Time.deltaTime, 0);
-
-            if (character.isGrounded)
-            {
-                // Set Vector3 "velocity" To The Player's Forward Vector3 Multiplied By The Length Of Vector3 "moveDirection" 
-                velocity = transform.forward * moveDirection.magnitude;
-
-                if (isSprinting)
-                {
-                    // Multiply Vector3 "velocity" By The Player's Sprint Speed 
-                    velocity *= sprintSpeed;
-                    GetComponent<Animator>().SetBool("IsRunning", true);
-                }
-                else
-                {
-                    // Multiply Vector3 "velocity" By The Player's Walk Speed 
-                    velocity *= walkSpeed;
-                    GetComponent<Animator>().SetBool("IsRunning", false);
-                }
-
-                // Check For Jump Input Before Jumping And Player Can Jump Again.
-                if (jumpRequest)
-                {
-                    GetComponent<Animator>().SetBool("IsJumping", true);
-                    // Get The Jump Height On The Y Axis
-                    velocity.y = jumpHeight;
-                    jumpRequest = false;
-                }
-                else
-                {
-                    GetComponent<Animator>().SetBool("IsJumping", false);
-                }
-            }
-        }
-        else
+        // Normalize Player Speed When Strafing.
+        if (moveDirection.magnitude > 1.0f)
         {
-            velocity.x = 0;
-            velocity.z = 0;
+            moveDirection.Normalize();
         }
 
-        // Apply Gravity
-        if (!character.isGrounded)
-        {
-            ApplyGravity();
-        }
-    }
+        // Calculate The Forward Rotation Of The Player
+        // Transform The Vector3 "moveDirection" From World Space To Local Space
+        moveDirection = transform.InverseTransformDirection(moveDirection);
 
-    private void ApplyGravity()
-    {
-        if (character.isGrounded)
+        // Get Euler angles To 
+        float turnAmount = Mathf.Atan2(moveDirection.x, moveDirection.z);
+
+        // Rotate The Player Along The Y-Axis
+        transform.Rotate(0, turnAmount * rotationSpeed * Time.deltaTime, 0);
+
+        bool hitGround = false;
+
+        if (vertSpeed < 0 && Physics.Raycast(transform.position, Vector3.down, out hit))
         {
-            velocity.y = 0;
+            float check = (character.height + character.radius) / 1.43f;
+            hitGround = hit.distance <= check;
         }
-        else
-        {
-            velocity.y += gravity * Time.deltaTime;
-        }
+
         
+
+        if (hitGround)
+        {
+            // Set Vector3 "velocity" To The Player's Forward Vector3 Multiplied By The Length Of Vector3 "moveDirection" 
+            velocity = transform.forward * moveDirection.magnitude;
+
+            if (isSprinting)
+            {
+                // Multiply Vector3 "velocity" By The Player's Sprint Speed 
+                velocity *= sprintSpeed;
+                //GetComponent<Animator>().SetBool("IsRunning", true);
+            }
+            else
+            {
+                // Multiply Vector3 "velocity" By The Player's Walk Speed 
+                velocity *= walkSpeed;
+                //GetComponent<Animator>().SetBool("IsRunning", false);
+            }
+
+            // Check For Jump Input Before Jumping And Player Can Jump Again.
+            if (jumpRequest)
+            {
+                GetComponent<Animator>().SetBool("IsJumping", true);
+                // Get The Jump Height On The Y Axis
+                ;
+                vertSpeed = jumpSpeed;
+                jumpRequest = false;
+            }
+            else
+            {
+                GetComponent<Animator>().SetBool("IsJumping", false);
+                vertSpeed = minFall;
+            }
+        }
+        else
+        {
+            vertSpeed += gravity * 5 * Time.deltaTime;
+            if (vertSpeed < terminalVelocity)
+            {
+                vertSpeed = terminalVelocity;
+            }
+        }
+
+        velocity.y = vertSpeed;
     }
 
     private void PlayAnimation()
     {
-        if (moveDirection.magnitude > 0f && !isSprinting && !jumpRequest && playerCanMove)
+        if (moveDirection.magnitude > 0f && !isSprinting && !jumpRequest)
         {
-            GetComponent<Animator>().SetBool("IsWalking", true);
+            //GetComponent<Animator>().SetBool("IsWalking", true);
         }
         else
         {
-            GetComponent<Animator>().SetBool("IsWalking", false);
+            //GetComponent<Animator>().SetBool("IsWalking", false);
         }
         
 
