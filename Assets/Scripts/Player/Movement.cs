@@ -71,6 +71,8 @@ public class Movement : MonoBehaviour
     // Is set if the player is during a jump
     bool onJump = false;
 
+    bool canJump = false;
+
     // Instance of character input
     CharacterInput input = new CharacterInput();
 
@@ -98,6 +100,7 @@ public class Movement : MonoBehaviour
     void Update()
     {
         // Get player input
+        input.jump = 0.0f;
         GetInput();
         
         forwardDirection = Vector3.zero;
@@ -112,12 +115,11 @@ public class Movement : MonoBehaviour
         Turn();
 
         velocity = (transform.forward * forwardDirection.magnitude);
-
-        CheckGround();
         
+        CheckGround();
         Run();
         Jump();
-
+        
         character.Move(velocity * Time.deltaTime);
     }
 
@@ -131,8 +133,8 @@ public class Movement : MonoBehaviour
         input.forward = Input.GetAxis("Vertical");
         input.sideward = Input.GetAxis("Horizontal");
 
-        if (input.jump == 0.0f) { input.jump = Input.GetAxis("Jump");}
-        if (input.run == 0.0f) { input.run = Input.GetAxis("Run"); }
+        input.jump = Input.GetAxis("Jump");
+        input.run = Input.GetAxis("Run"); 
     }
 
     void Run()
@@ -178,26 +180,23 @@ public class Movement : MonoBehaviour
 
     void Jump()
     {
-        Debug.Log(onJump);
         if (grounded)
         {
-            if (input.jump > 0 && !onJump)
+            if (input.jump > 0.0f && canJump && moveSettings.vertVel <= moveSettings.minFall)
             {
                 moveSettings.vertVel = moveSettings.jumpVel;
-                onJump = true;
+
+                // Apply animations
+                //PlayState(CurrentState.Jump, true);
             }
-            else { moveSettings.vertVel = moveSettings.minFall; }
         }
         else
         {
-            input.jump = 0.0f;
-            moveSettings.vertVel -= downAccel * Time.deltaTime;
+            moveSettings.vertVel += downAccel * 5 * Time.deltaTime;
             if (moveSettings.vertVel < moveSettings.termVel) { moveSettings.vertVel = moveSettings.termVel; }
-        }
 
-        if(moveSettings.vertVel >= 5.0f)
-        {
-            onJump = false;
+            // Apply animations
+            //PlayState(CurrentState.Jump, false);
         }
         velocity.y = moveSettings.vertVel;
     }
@@ -209,31 +208,10 @@ public class Movement : MonoBehaviour
 
     void CheckGround()
     {
-
-        /*
-        if ((Physics.Raycast(transform.position, Vector3.down, out groundHit)))
-        {
-            Debug.DrawRay(transform.position, Vector3.down * groundHit.distance, Color.blue);
-            float check = (character.height + character.radius) / 1.43f;
-            grounded = groundHit.distance <= check;
-        }
-        */
-        bool lastGrounded = grounded;
-
-        bool hit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.6f);
+        bool hit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.7f);
         Debug.DrawRay(transform.position, Vector3.down * groundHit.distance, Color.blue);
-        if (hit && !onJump)
-        {
-            grounded = true;
-            onJump = false;
-            Debug.LogFormat("Is Grounded: {0}",grounded);
-        }
-        else
-        {
-            grounded = false;
-            Debug.LogFormat("Is Grounded: {0}", grounded);
-        }
-        
+        grounded = hit;
+        canJump = hit;
     }
 
     private void PlayState(CurrentState state, bool active)
