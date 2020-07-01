@@ -2100,9 +2100,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1427400004}
-  - component: {fileID: 1427400003}
   - component: {fileID: 1427400002}
   - component: {fileID: 1427400001}
+  - component: {fileID: 1427400003}
   m_Layer: 8
   m_Name: Temp Floor
   m_TagString: Untagged
@@ -2171,7 +2171,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1427400000}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!4 &1427400004
 Transform:
   m_ObjectHideFlags: 0
@@ -2179,13 +2179,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1427400000}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 110, y: -9, z: 8}
-  m_LocalScale: {x: 1000, y: 0.1, z: 1000}
+  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 10, y: -9, z: 8}
+  m_LocalScale: {x: 100, y: 0.1, z: 100}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &1525934595
 GameObject:
   m_ObjectHideFlags: 0

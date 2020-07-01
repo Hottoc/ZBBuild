@@ -125,7 +125,7 @@ Material:
     - _SmoothNess: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
-    - _Speed: 10
+    - _Speed: 31
     - _Speed1: 1
     - _Speed2: 1
     - _Speed3: 1
@@ -137,7 +137,7 @@ Material:
     - _Steepness3: 0.1
     - _Steepness4: 0.1
     - _Steepness5: 0.1
-    - _Strength: 5
+    - _Strength: 0.7
     - _UVSec: 0
     - _WaterFogDensity: 1.07
     - _Wave2Enabled: 1
