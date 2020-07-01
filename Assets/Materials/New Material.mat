@@ -8,14 +8,13 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: New Material
-  m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
-  m_ShaderKeywords: _ALPHAPREMULTIPLY_ON
+  m_Shader: {fileID: 4800000, guid: d6238d09719203443877450e8e71d7bd, type: 3}
+  m_ShaderKeywords: WAVE2 _ALPHAPREMULTIPLY_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
-  stringTagMap:
-    RenderType: Transparent
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses: []
   m_SavedProperties:
     serializedVersion: 3
@@ -40,11 +39,31 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Heightmap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 5}
+        m_Offset: {x: 0, y: 0}
+    - _Heightmap2:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _IntersectionFoamRamp:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap1:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 5}
+        m_Offset: {x: 3, y: 0}
+    - _NormalMap2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -56,24 +75,91 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _RampTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _Amplitude1: 0.001
+    - _Amplitude2: 0.001
+    - _Amplitude3: 0.001
+    - _Amplitude4: 0.001
+    - _Amplitude5: 0.001
     - _BumpScale: 1
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
+    - _DirectionX1: 1
+    - _DirectionX2: 0.96
+    - _DirectionX3: 1
+    - _DirectionX4: 1
+    - _DirectionX5: 1
+    - _DirectionY1: 1
+    - _DirectionY2: 1
+    - _DirectionY3: 1
+    - _DirectionY4: 1
+    - _DirectionY5: 1
     - _DstBlend: 10
+    - _FadeSpeed1: 1
+    - _FadeSpeed2: 1
+    - _FadeSpeed3: 1
+    - _FadeSpeed4: 1
+    - _FadeSpeed5: 1
+    - _FoamSpread: 2.43
     - _GlossMapScale: 1
-    - _Glossiness: 0.5
+    - _Glossiness: 20
     - _GlossyReflections: 1
+    - _HeightMapFoamStrength: 1
+    - _HeightmapStrength: 0
+    - _IntersectionFoamDensity: 0.15
     - _Metallic: 0
     - _Mode: 3
+    - _NormalMapBias: 1
+    - _NormalMapMoveSpeed1: 0
+    - _NormalMapMoveSpeed2: 0
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _RefractionStrength: 0.214
+    - _RimAmount: 0.896
+    - _RimThreshold: 0
+    - _SSSPower: 0
+    - _SmoothNess: 0
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
+    - _Speed: 31
+    - _Speed1: 1
+    - _Speed2: 1
+    - _Speed3: 1
+    - _Speed4: 1
+    - _Speed5: 1
     - _SrcBlend: 1
+    - _Steepness1: 10
+    - _Steepness2: 0.1
+    - _Steepness3: 0.1
+    - _Steepness4: 0.1
+    - _Steepness5: 0.1
+    - _Strength: 0.7
     - _UVSec: 0
+    - _WaterFogDensity: 1.07
+    - _Wave2Enabled: 1
+    - _Wave3Enabled: 0
+    - _Wave4Enabled: 0
+    - _Wave5Enabled: 0
+    - _WaveLength1: 5
+    - _WaveLength2: 0.1
+    - _WaveLength3: 0.1
+    - _WaveLength4: 0.1
+    - _WaveLength5: 0.1
     - _ZWrite: 0
     m_Colors:
-    - _Color: {r: 1, g: 0, b: 0, a: 0.20392157}
+    - _AmbientColor: {r: 0.4, g: 0.4, b: 0.4, a: 1}
+    - _Color: {r: 0.27058828, g: 0.6440031, b: 0.85882354, a: 0.20392157}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _HeightmapFoamColor: {r: 1, g: 1, b: 1, a: 1}
+    - _IntersectionFoamColor: {r: 1, g: 1, b: 1, a: 1}
+    - _NormalMapMoveDir1: {r: 0, g: 0, b: 0, a: 0}
+    - _NormalMapMoveDir2: {r: 0, g: 0, b: 0, a: 0}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+    - _WaterFogColor: {r: 0, g: 0, b: 0, a: 0}
+    - _WaveFoamDir: {r: 0, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []
