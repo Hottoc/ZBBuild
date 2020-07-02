@@ -1,59 +1,94 @@
-﻿Shader "Custom Shaders/Water"
+﻿Shader "Custom Shader/Water"
 {
-    Properties
-    {
-        _Color("Color", Color) = (0,0,0,0)
-        _Strength("Strength", Range(0,5)) = 1.0
-        _Speed("Speed",Range(-200, 200)) = 100
-    }
-        SubShader
-    {
-        Tags
-        {
-        "RenderType" = "transparent"
-        }
+	Properties
+	{
+		// color of the water
+		_Color("Color", Color) = (1, 1, 1, 1)
+		// color of the edge effect
+		_EdgeColor("Edge Color", Color) = (1, 1, 1, 1)
+		// width of the edge effect
+		_DepthFactor("Depth Factor", float) = 1.0
+		_WaveSpeed("Wave Speed", float) = 1.0
+		_WaveAmp("Wave Amp", float) = 0.2
+		_DepthRampTex("Depth Ramp", 2D) = "white" {}
+	_NoiseTex("Noise Texture", 2D) = "white" {}
 
-        Pass
-    {
-        Cull Off
+		
+	}
 
-        CGPROGRAM
+		SubShader
+		{
+			// Background distortion
+			Pass
+			{
 
-        #pragma vertex vertexFunc
+				CGPROGRAM
+				#pragma vertex vert
+				#pragma fragment frag
+				#include "UnityCG.cginc"
 
-        #pragma fragment fragmentFunc
+				// Properties
+				sampler2D _CameraDepthTexture;
+				sampler2D _DepthRampTex;
+				sampler2D _NoiseTex;
+				float _DepthFactor;
+				float4 _Color;
+				float4 _EdgeColor;
+				float _WaveSpeed;
+				float _WaveAmp;
+				
 
-        float4 _Color;
-        float _Strength;
-        float _Speed;
+				struct vertexInput
+				{
+					float4 vertex : POSITION;
+					float4 texCoord : TEXCOORD1;
 
-        struct vertexInput {
-            float4 vertex : POSITION;
-        };
+				};
 
-        struct vertexOutput
-        {
-            float4 pos : SV_POSITION;
-        };
+				struct vertexOutput
+				{
+					float4 pos : SV_POSITION;
+					float4 texCoord : TEXCOORD0;
+					float4 screenPos : TEXCOORD1;
+				};
+				
+				vertexOutput vert(vertexInput input)
+				{
+					vertexOutput output;
 
-        vertexOutput vertexFunc(vertexInput IN) {
-            vertexOutput o;
+					// convert input to world space
+					output.pos = UnityObjectToClipPos(input.vertex);
 
-            float4 worldPos = mul(unity_ObjectToWorld, IN.vertex);
+					// apply wave animation
+					float noiseSample = tex2Dlod(_NoiseTex, float4(input.texCoord.xy, 0, 0));
+					output.pos.y += sin(_Time * _WaveSpeed * noiseSample) * _WaveAmp;
+					output.pos.x += cos(_Time * _WaveSpeed * noiseSample) * _WaveAmp;
 
-            float displacement = (cos(worldPos.y) + cos((worldPos.x / 5.0)+ (_Speed * _Time)));
+					// compute depth (screenPos is a float4)
+					output.screenPos = ComputeScreenPos(output.pos);
 
-            worldPos.y = worldPos.y + (displacement * _Strength);
+					output.texCoord = input.texCoord;
 
-            o.pos = mul(UNITY_MATRIX_VP, worldPos);
+					return output;
+				}
+				
 
-            return o;
-        };
+				float4 frag(vertexOutput input) : COLOR
+				{
+				  float4 depthSample = SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, input.screenPos);
+				  float depth = LinearEyeDepth(depthSample).r;
 
-        float4 fragmentFunc(vertexOutput IN) : COLOR {
-            return _Color;
-        }
-        ENDCG
-            }
-    }
+				  // apply the DepthFactor to be able to tune at what depth values
+				  // the foam line actually starts
+				  float foamLine = 1 - saturate(_DepthFactor * (depth - input.screenPos.w));
+
+				  // multiply the edge color by the foam factor to get the edge,
+				  // then add that to the color of the water
+				  float4 col = _Color + foamLine * _EdgeColor;
+
+				  return col;
+				}
+				ENDCG
+			}
+		}
 }
