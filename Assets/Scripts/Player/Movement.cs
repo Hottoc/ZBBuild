@@ -212,6 +212,15 @@ public class Movement : MonoBehaviour
         Debug.DrawRay(transform.position, Vector3.down * groundHit.distance, Color.blue);
         grounded = hit;
         canJump = hit;
+        if (grounded)
+        {
+            animator.speed = 5;
+        }
+        else
+        {
+            animator.speed = 0;
+        }
+        
     }
 
     private void PlayState(CurrentState state, bool active)
