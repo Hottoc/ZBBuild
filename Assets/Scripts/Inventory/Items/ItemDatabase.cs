@@ -6,16 +6,18 @@ public class ItemDatabase : MonoBehaviour
 {
     public List<Item> items = new List<Item>();
 
-    public void Awake()
+    private void Awake()
     {
         BuildDatabase();
     }
 
+    //Get Item From DataBase By ID value
     public Item GetItem(int id)
     {
         return items.Find(item => item.id == id);
     }
 
+    //Get Item From DataBase By TITLE value
     public Item GetItem(string itemName)
     {
         return items.Find(item => item.title == itemName);
@@ -23,6 +25,8 @@ public class ItemDatabase : MonoBehaviour
 
     void BuildDatabase()
     {
+        /*TEMPLATE*/
+        /** new Item(int [ID], string [TITLE], string [DESCRIPTION]) **/
         items = new List<Item>() {
                 new Item(0, "Hammer", "This is the description of a hammer")
             };

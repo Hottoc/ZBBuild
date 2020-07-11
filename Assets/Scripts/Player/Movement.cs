@@ -9,7 +9,7 @@ public class Movement : MonoBehaviour
     {
         [Header("[X,Z] Velocity")]
         public float forwardVel = 0.0f;
-        public float rotateVel = 250.0f;
+        public float rotateVel = 200.0f;
         [Header("[Y] Velocity")]
         public float vertVel = 0.0f;
         public float jumpVel = 6.0f;
@@ -17,6 +17,7 @@ public class Movement : MonoBehaviour
         
         [Header("Gravity")]
         public float minFall = -1.5f;
+        public float downAccel = -10.0f;
     }
 
     class CharacterInput
@@ -49,9 +50,6 @@ public class Movement : MonoBehaviour
     // Instance of move settings
     public MoveSettings moveSettings = new MoveSettings();
 
-    // Gravity acceleration
-    public float downAccel = 900.0f;
-
     // Used for storing velocity before applying to the character controller
     Vector3 velocity = Vector3.zero;
 
@@ -63,7 +61,7 @@ public class Movement : MonoBehaviour
 
     // Store if the player is grounded
     bool grounded = false;
-
+    
     ControllerColliderHit _contact;
 
     // Stores the raycast hit to the ground
@@ -199,14 +197,17 @@ public class Movement : MonoBehaviour
             if (input.jump > 0.0f && canJump && moveSettings.vertVel <= moveSettings.minFall)
             {
                 moveSettings.vertVel = moveSettings.jumpVel;
-
+                moveSettings.forwardVel /= 1.5f;
+                velocity.x *= moveSettings.forwardVel;
+                velocity.z *= moveSettings.forwardVel;
+                canJump = false;
                 // Apply animations
                 //PlayState(CurrentState.Jump, true);
             }
         }
         else
         {
-            moveSettings.vertVel += downAccel * 5 * Time.deltaTime;
+            moveSettings.vertVel += moveSettings.downAccel * 5 * Time.deltaTime;
             if (moveSettings.vertVel < moveSettings.termVel) { moveSettings.vertVel = moveSettings.termVel; }
 
             // Apply animations
@@ -230,6 +231,7 @@ public class Movement : MonoBehaviour
             grounded = true;
             canJump = true;
             //PlayState(CurrentState.Swim, false);
+            
             return;
         }
         grounded = false;
