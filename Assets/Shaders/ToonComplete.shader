@@ -4,6 +4,7 @@
 	{
 		_Color("Color", Color) = (1,1,1,1)
 		_MainTex("Main Texture", 2D) = "white" {}
+	
 		_RampTex("Shader Texture", 2D) = "white" {}
 		// Ambient light is applied uniformly to all surfaces on the object.
 		[HDR]
@@ -17,10 +18,16 @@
 		_RimAmount("Rim Amount", Range(0, 1)) = 0.716
 		// Control how smoothly the rim blends when approaching unlit
 		// parts of the surface.
-		_RimThreshold("Rim Threshold", Range(0, 1)) = 0.1		
+		_RimThreshold("Rim Threshold", Range(0, 1)) = 0.1
 	}
 	SubShader
 	{
+		Name "FORWARD"
+		Tags
+		{
+			"RenderType" = "Opaque"
+			"Queue" = "Geometry"
+		}
 		Pass
 		{
 			// Setup our pass to use Forward rendering, and only receive
@@ -36,7 +43,7 @@
 			#pragma fragment frag
 			// Compile multiple versions of this shader depending on lighting settings.
 			#pragma multi_compile_fwdbase
-			
+
 			#include "UnityCG.cginc"
 			// Files below include macros and functions to assist
 			// with lighting and shadows.
@@ -137,8 +144,7 @@
 			}
 			ENDCG
 		}
-
-		// Shadow casting support.
-        UsePass "Legacy Shaders/VertexLit/SHADOWCASTER"
 	}
+	
+	FallBack "Diffuse"
 }

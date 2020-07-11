@@ -40,23 +40,18 @@ public class PlayerCamera : MonoBehaviour
         {
             if (Input.GetMouseButton(1))
             {
+                Cursor.lockState = CursorLockMode.Locked;
                 x += Input.GetAxis("Mouse X") * xSpeed * distance * 0.02f;
                 y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
 
                 distance = Mathf.Clamp(distance - Input.GetAxis("Mouse ScrollWheel") * 40, distanceMin, distanceMax);
             }
-            else if (Input.GetKeyDown(KeyCode.Q))
+            else
             {
-
-                x += 90.0f;
-
-            }
-            else if (Input.GetKeyDown(KeyCode.E))
-            {
-                x -= 90.0f;
+                Cursor.lockState = CursorLockMode.None;
             }
 
-            
+
             // Reset The Value Of Rotation Angle To 0 When Exceeding A 360 Degree Angle.
             if (x > 360.0f || x < -360.0f)
             {

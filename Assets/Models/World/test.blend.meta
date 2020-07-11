@@ -1,26 +1,11 @@
 fileFormatVersion: 2
-guid: 0e787ec1f42e65c44ae52d79635c9453
+guid: a14416dd8032f9745951843902ea5ff2
 ModelImporter:
   serializedVersion: 20101
   internalIDToNameTable:
   - first:
-      74: 1220396213081368378
-    second: Player|Idle
-  - first:
-      74: 2221424790427038968
-    second: Player|Jump
-  - first:
-      74: -8143441008401525273
-    second: Player|Run
-  - first:
-      74: -5889393146984228596
-    second: Player|Swim
-  - first:
-      74: 154847839914468646
-    second: Player|Two Handed
-  - first:
-      74: -1950934060857412392
-    second: Player|Walk
+      74: -623603649343465320
+    second: Scene
   externalObjects: {}
   materials:
     materialImportMode: 1
