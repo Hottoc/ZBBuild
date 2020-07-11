@@ -19,7 +19,6 @@ public class BuildWorld : MonoBehaviour
     void Start()
     {
         prefab = new GameObject[(int) mapGridSize.x, (int) mapGridSize.y];
-        world = GameObject.Find("World").GetComponent<World>();
 
         ApplyMapNoise();
     }

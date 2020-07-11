@@ -36,7 +36,8 @@ public class Movement : MonoBehaviour
         Idle,
         Jump,
         Walk,
-        Run
+        Run,
+        Swim
     }
 
     [Header("Movement Speeds")]
@@ -68,9 +69,6 @@ public class Movement : MonoBehaviour
     // Stores the raycast hit to the ground
     RaycastHit groundHit;
 
-    // Is set if the player is during a jump
-    bool onJump = false;
-
     bool canJump = false;
 
     // Instance of character input
@@ -101,6 +99,7 @@ public class Movement : MonoBehaviour
     {
         // Get player input
         input.jump = 0.0f;
+        //moveSettings.forwardVel = 0.0f;
         GetInput();
         
         forwardDirection = Vector3.zero;
@@ -119,7 +118,8 @@ public class Movement : MonoBehaviour
         CheckGround();
         Run();
         Jump();
-        
+        animator.SetFloat("test", moveSettings.forwardVel);
+
         character.Move(velocity * Time.deltaTime);
     }
 
@@ -139,6 +139,11 @@ public class Movement : MonoBehaviour
 
     void Run()
     {
+        if (input.forward == 0 && input.sideward == 0) { moveSettings.forwardVel = 0.0f; return; }
+        float setSpeed = (input.run == 0.0f) ? walkSpd : runSpd;
+        moveSettings.forwardVel = MaxSpeed(moveSettings.forwardVel, setSpeed);
+        velocity *= moveSettings.forwardVel;
+        /*
         if (input.forward != 0 || input.sideward != 0)
         {
             if (input.run == 0.0f)
@@ -167,6 +172,15 @@ public class Movement : MonoBehaviour
         input.run = 0.0f;
         velocity.x *= moveSettings.forwardVel;
         velocity.z *= moveSettings.forwardVel;
+        */
+    }
+
+    float MaxSpeed(float current, float max)
+    {
+        current += 15.0f * Time.deltaTime;
+        if (current > max) { current = max; }
+
+        return current;
     }
 
     void Turn()
@@ -209,18 +223,17 @@ public class Movement : MonoBehaviour
     void CheckGround()
     {
         bool hit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.7f);
+        bool waterHit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.7f, LayerMask.GetMask("Water"));
         Debug.DrawRay(transform.position, Vector3.down * groundHit.distance, Color.blue);
-        grounded = hit;
-        canJump = hit;
-        if (grounded)
+        if (hit && !waterHit)
         {
-            animator.speed = 5;
+            grounded = true;
+            canJump = true;
+            //PlayState(CurrentState.Swim, false);
+            return;
         }
-        else
-        {
-            animator.speed = 0;
-        }
-        
+        grounded = false;
+        //PlayState(CurrentState.Swim, true);
     }
 
     private void PlayState(CurrentState state, bool active)
@@ -233,6 +246,9 @@ public class Movement : MonoBehaviour
                 break;
             case CurrentState.Run:
                 animName = "IsRunning";
+                break;
+            case CurrentState.Swim:
+                animName = "IsSwimming";
                 break;
         }
         animator.SetBool(animName, active);
