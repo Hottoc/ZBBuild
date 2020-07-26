@@ -28,7 +28,9 @@ public class ItemDatabase : MonoBehaviour
         /*TEMPLATE*/
         /** new Item(int [ID], string [TITLE], string [DESCRIPTION]) **/
         items = new List<Item>() {
-                new Item(0, "Hammer", "This is the description of a hammer")
+                new Item(0, "Hammer", "This is the description of a hammer"),
+                new Item(1, "Test", "This is a test"),
+                new Item(2, "Whatever", "Jereomy is smelly")
             };
     }
 }

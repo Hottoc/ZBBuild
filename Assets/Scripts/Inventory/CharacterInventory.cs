@@ -5,21 +5,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Inventory : MonoBehaviour
+public class CharacterInventory : MonoBehaviour
 {
     public List<Item> playerItems = new List<Item>();
     /*IF GETTING "NOT SET TO INSTANCE" ERROR THEN THE DATABASE IS NOT SET IN THE PLAYER OBJECT INSPECTOR*/
-public ItemDatabase itemDB;
-
-    private void Start()
-    {
-        //On Start, Give Player Item; Passing Id value of 0
-        GiveItem(0);
-        //On Start, Remove Player Item; Passing Id value of 0
-        //RemoveItem(0);
-    }
-
-    public void GiveItem(int id)
+    public ItemDatabase itemDB;
+    public void AddItem(int id)
     {
         //Fetch Item Object From Item Database
         Item itemToAdd = itemDB.GetItem(id);
@@ -28,13 +19,13 @@ public ItemDatabase itemDB;
         Debug.Log(itemToAdd.title + " Has Been Added To Inventory");
     }
 
-    public void GiveItem(string itemName)
+    public void AddItem(string itemName)
     {
         //Fetch Item Object From Item Database
         Item itemToAdd = itemDB.GetItem(itemName);
         //Add Item To Player Inventory List
         playerItems.Add(itemToAdd);
-        //Debug.Log(itemToAdd.title + " Has Been Added To Inventory");
+        Debug.Log(itemToAdd.title + " Has Been Added To Inventory");
     }
 
     public Item CheckForItem(int id)
