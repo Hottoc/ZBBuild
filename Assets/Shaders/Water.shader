@@ -14,6 +14,7 @@
 		_DepthRampTex("Depth Ramp", 2D) = "white" {}
 		_NoiseTex("Noise Texture", 2D) = "white" {}
 		_MainTex("Main Texture", 2D) = "white" {}
+		_DistortStrength("Distort Strength", float) = 1.0
 		
 		
 	}
@@ -22,10 +23,9 @@
 		{
 			Tags
 			{
-				//"Queue" = "Transparent"
+				"Queue" = "Transparent"
 				"RenderType" = "Opaque"
 			}
-			LOD 200
 			Pass
 			{
 
@@ -54,6 +54,7 @@
 				struct vertexInput
 				{
 					float4 vertex : POSITION;
+					float3 normal : NORMAL;
 					float4 texCoord : TEXCOORD1;
 
 				};
@@ -72,6 +73,10 @@
 					// convert input to world space
 					output.pos = UnityObjectToClipPos(input.vertex);
 
+					float4 normal4 = float4(input.normal, 0.0);
+					float3 normal = normalize(mul(normal4, unity_WorldToObject).xyz);
+
+					output.texCoord = ComputeGrabScreenPos(output.pos);
 					// apply wave animation
 					float noiseSample = tex2Dlod(_NoiseTex, float4(input.texCoord.xy, 0, 0));
 					output.pos.y += sin(_Time.y * _WaveSpeed * noiseSample) * _WaveAmp;

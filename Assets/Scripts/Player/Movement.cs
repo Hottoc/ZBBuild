@@ -14,7 +14,7 @@ public class Movement : MonoBehaviour
         public float vertVel = 0.0f;
         public float jumpVel = 6.0f;
         public float termVel = -10.0f;
-        
+
         [Header("Gravity")]
         public float minFall = -1.5f;
         public float downAccel = -10.0f;
@@ -61,7 +61,7 @@ public class Movement : MonoBehaviour
 
     // Store if the player is grounded
     bool grounded = false;
-    
+
     ControllerColliderHit _contact;
 
     // Stores the raycast hit to the ground
@@ -99,7 +99,7 @@ public class Movement : MonoBehaviour
         input.jump = 0.0f;
         //moveSettings.forwardVel = 0.0f;
         GetInput();
-        
+
         forwardDirection = Vector3.zero;
 
         forwardDirection = input.forward * GetCamForward() + input.sideward * playerCamera.transform.right;
@@ -112,7 +112,7 @@ public class Movement : MonoBehaviour
         Turn();
 
         velocity = (transform.forward * forwardDirection.magnitude);
-        
+
         CheckGround();
         Run();
         Jump();
@@ -132,7 +132,7 @@ public class Movement : MonoBehaviour
         input.sideward = Input.GetAxis("Horizontal");
 
         input.jump = Input.GetAxis("Jump");
-        input.run = Input.GetAxis("Run"); 
+        input.run = Input.GetAxis("Run");
     }
 
     void Run()
@@ -147,7 +147,6 @@ public class Movement : MonoBehaviour
             if (input.run == 0.0f)
             {
                 moveSettings.forwardVel = walkSpd;
-
                 // Apply animations
                 PlayState(CurrentState.Run, false);
                 PlayState(CurrentState.Walk, true);
@@ -155,7 +154,6 @@ public class Movement : MonoBehaviour
             else
             {
                 moveSettings.forwardVel = runSpd;
-
                 // Apply animations
                 PlayState(CurrentState.Walk, false);
                 PlayState(CurrentState.Run, true);
@@ -197,7 +195,7 @@ public class Movement : MonoBehaviour
             if (input.jump > 0.0f && canJump && moveSettings.vertVel <= moveSettings.minFall)
             {
                 moveSettings.vertVel = moveSettings.jumpVel;
-                moveSettings.forwardVel /= 1.5f;
+                //moveSettings.forwardVel -= 1f * Time.deltaTime;
                 velocity.x *= moveSettings.forwardVel;
                 velocity.z *= moveSettings.forwardVel;
                 canJump = false;
@@ -221,20 +219,25 @@ public class Movement : MonoBehaviour
         return Vector3.Scale(playerCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
     }
 
+   
+
     void CheckGround()
     {
-        bool hit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.7f);
+        //bool hit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.7f);
+        bool hit = Physics.Linecast(transform.position, transform.position + Vector3.down * 3.7f);
         bool waterHit = Physics.Raycast(transform.position, Vector3.down, out groundHit, 3.7f, LayerMask.GetMask("Water"));
-        Debug.DrawRay(transform.position, Vector3.down * groundHit.distance, Color.blue);
-        if (hit && !waterHit)
+        Debug.DrawLine(transform.position, transform.position + Vector3.down * 3.7f, Color.blue);
+        Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * 5f, Color.red);
+        if (hit)
         {
             grounded = true;
             canJump = true;
             //PlayState(CurrentState.Swim, false);
-            
+
             return;
         }
         grounded = false;
+        canJump = false;
         //PlayState(CurrentState.Swim, true);
     }
 
