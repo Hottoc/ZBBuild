@@ -2832,7 +2832,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 0e787ec1f42e65c44ae52d79635c9453,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.4
+      value: -5.79
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 0e787ec1f42e65c44ae52d79635c9453,
         type: 3}
@@ -4429,7 +4429,7 @@ MonoBehaviour:
     ground:
       serializedVersion: 2
       m_Bits: 256
-    height: 1.8
+    height: 1.9
     width: 1.2
     heightPadding: 0.07
     maxGroundAngle: 120
