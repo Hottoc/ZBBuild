@@ -56,6 +56,7 @@
 					float4 vertex : POSITION;
 					float3 normal : NORMAL;
 					float4 texCoord : TEXCOORD1;
+					
 
 				};
 
@@ -70,6 +71,7 @@
 				{
 					vertexOutput output;
 
+					
 					// convert input to world space
 					output.pos = UnityObjectToClipPos(input.vertex);
 
@@ -84,10 +86,9 @@
 
 					// compute depth
 					output.screenPos = ComputeScreenPos(output.pos);
-
 					// texture coordinates 
 					output.texCoord = input.texCoord;
-
+					
 					return output;
 				}
 				

@@ -1,12 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
     [System.Serializable]
     public class MoveSettings
     {
+        
         [Header("[X,Z] Velocity")]
         public float forwardVel = 0.0f;
         public float rotateVel = 0.0f;
@@ -24,7 +26,6 @@ public class PlayerController : MonoBehaviour
         public float width = 0.5f;
         public float heightPadding = 0.05f;
         public float maxGroundAngle = 120;
-        public float test = 0;
         [Header("Debugging")]
         public bool debug;
     }
@@ -57,7 +58,6 @@ public class PlayerController : MonoBehaviour
         Run,
         Swim
     }
-
     //Raycast
     RaycastHit groundHitInfo;
     RaycastHit wallHitInfo;
@@ -79,7 +79,17 @@ public class PlayerController : MonoBehaviour
     // Objects & Components
     GameObject playerCamera = null;
     Animator animator = null;
+    #region Properties
+    public bool IsGrounded
+    {
+        get { return isGrounded; }
+        set { isGrounded = value; }
+    }
 
+
+
+
+    #endregion
     void Start()
     {
         // Grab Camera Object
@@ -93,13 +103,15 @@ public class PlayerController : MonoBehaviour
     {
         GetInput();
 
-        TestForward();
-        CalculateGroundAngle();
-        CheckGround();
-        CheckWall();
+        
+        GetForward(); //Get The Player Forward Based On Camera Position And Slope Angle
+        CalculateGroundAngle(); //Calculate The Angle Of THe Player Based On Ground Slope
+        CheckGround(); //Check If The Player Is On The Ground
+        CheckWall(); //Check If The Player Is On A Wall
 
-        ApplySpeed();
+        
         ApplyGravity();
+        ApplySpeed();
         Jump();
         DrawDebugLines();
 
@@ -138,14 +150,11 @@ public class PlayerController : MonoBehaviour
         moveSettings.rotateVel = turnAmount * moveSettings.rotationSpd;
 
         transform.Rotate(0, moveSettings.rotateVel * Time.deltaTime, 0);
-        //transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, moveSettings.rotateVel, 0), moveSettings.rotationSpd * Time.deltaTime);
-        Debug.Log(forwardDirection);
+        
         if (moveSettings.rotateVel > 100.0f || moveSettings.rotateVel < -100.0f)
         {
-            
             float tiltVal = Mathf.Clamp(Mathf.Abs(moveSettings.forwardVel / 8), 0, 1) ;
             transform.Rotate(-10 * tiltVal * Time.deltaTime, 0, 0);
-            //transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(new Vector3(-moveSettings.forwardVel * tiltVal, 0, 0)), 2 * Time.deltaTime);
             return;
         }
         restoreRotation();
@@ -154,16 +163,8 @@ public class PlayerController : MonoBehaviour
 
     void restoreRotation()
     {
-        if (transform.eulerAngles.x > 0.01f || transform.eulerAngles.x < -0.01f)
-        {
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(orginTilt, transform.eulerAngles.y, 0), Time.deltaTime * 5);
-            return;
-        }
-        if (transform.eulerAngles.x != 0.0f)
-        {
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(0, transform.eulerAngles.y, 0), Time.deltaTime * 5);
-            //transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y, 0);
-        }
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(orginTilt, transform.eulerAngles.y, 0), Time.deltaTime * 5);
+        return;
     }
 
     /// <summary>
@@ -172,8 +173,8 @@ public class PlayerController : MonoBehaviour
     void Move()
     {
         velocity.x *= moveSettings.forwardVel;
-        velocity.y = moveSettings.vertVel;
         velocity.z *= moveSettings.forwardVel;
+        velocity.y += moveSettings.vertVel;
 
         transform.position += velocity * Time.deltaTime;
         animator.SetFloat("Forward Speed", moveSettings.forwardVel);
@@ -183,21 +184,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void ApplySpeed()
     {
-        
         if (!isGrounded)
         {
-            moveSettings.forwardVel = MinSpeed(moveSettings.forwardVel, 2.0f, 0.0f);
-            //velocity[0] *= moveSettings.forwardVel;
-            //velocity[2] *= moveSettings.forwardVel;
-            // Amplify Vertical Velocity
-            
-            if (groundAngle <= 85.0f)
-            {
-                moveSettings.vertVel += -moveSettings.forwardVel;
-            }
-            
+            moveSettings.forwardVel = MinSpeed(moveSettings.forwardVel, 5.0f, 0.0f);
             return;
         }
+
         if (forwardInput == 0 && sidewardInput == 0)
         {
             moveSettings.forwardVel = 0;
@@ -208,6 +200,11 @@ public class PlayerController : MonoBehaviour
 
         moveSettings.forwardVel = MaxSpeed(moveSettings.forwardVel, 15.0f, setSpeed);
 
+        if (forward.y != 0)
+        {
+            velocity.y *= moveSettings.forwardVel;
+        }
+
         //Have player Speed decrease rapidly if climbing steep slope
         //Debug.Log(groundAngle);
         if (groundAngle >= moveSettings.maxGroundAngle && moveSettings.forwardVel > -5f)
@@ -215,11 +212,8 @@ public class PlayerController : MonoBehaviour
             moveSettings.forwardVel -= 30 * Time.deltaTime;
         }
 
-        //velocity[0] *= moveSettings.forwardVel;
-        //velocity[2] *= moveSettings.forwardVel;
+        
 
-        
-        
     }
     /// <summary>
     /// Build Player speed gradually until reaches max.
@@ -251,7 +245,7 @@ public class PlayerController : MonoBehaviour
         }
         if (jumpInput != 0 && canJump)
         {
-            moveSettings.vertVel += moveSettings.jumpSpd;
+            moveSettings.vertVel = moveSettings.jumpSpd;
             animator.SetBool("Is Jumping", true);
             canJump = false;
         }
@@ -272,7 +266,7 @@ public class PlayerController : MonoBehaviour
         forward = Vector3.Cross(groundHitInfo.normal, -transform.right);
     }
 
-    void TestForward()
+    void GetForward()
     {
         CalculateForward();
 
@@ -312,41 +306,70 @@ public class PlayerController : MonoBehaviour
             
             if (Vector3.Distance(transform.position, groundHitInfo.point) < moveSettings.height)
             {
-                transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.up * (moveSettings.height + moveSettings.heightPadding), 10* Time.deltaTime);
+                transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.up * (moveSettings.height + 3), 5 * Time.deltaTime);
             }
         }
-        else { isGrounded = false;} 
+        else { isGrounded = false; } 
     }
     void ApplyGravity()
     {
+        
         if (isGrounded) return;
         moveSettings.vertVel += (physSettings.downAccel) * Time.deltaTime;
         if (moveSettings.vertVel < physSettings.termVel) moveSettings.vertVel = physSettings.termVel;
+        // Amplify Vertical Velocity
+        
         //velocity[1] = moveSettings.vertVel;
 
     }
     void CheckWall()
     {
-        bool forwardOne = Physics.Raycast(transform.position, transform.forward, out wallHitInfo, moveSettings.width + moveSettings.heightPadding, moveSettings.ground);
-        //bool forwardTwo = Physics.Raycast(transform.position - Vector3.up,  transform.forward - Vector3.up, out wallHitInfo, moveSettings.width + moveSettings.heightPadding, moveSettings.ground);
-        if (forwardOne)
+        /*
+        bool forwardCheck = Physics.Raycast(transform.position, transform.forward, out wallHitInfo, moveSettings.width + moveSettings.heightPadding, moveSettings.ground);
+        bool backwardCheck = Physics.Raycast(transform.position, -transform.forward, out wallHitInfo, moveSettings.width + moveSettings.heightPadding, moveSettings.ground);
+        if (forwardCheck || backwardCheck)
         {
-            if (Vector3.Distance(transform.position, wallHitInfo.point) < moveSettings.width )
+            if (Vector3.Distance(transform.position, wallHitInfo.point) > moveSettings.width )
             {
+                //transform.position = Vector3.Lerp(transform.position, transform.position - transform.forward * (moveSettings.width - 1), 5 * Time.deltaTime);
                 transform.position = Vector3.Lerp(transform.position, transform.position - transform.forward * (moveSettings.width - 1), 5 * Time.deltaTime);
             }
+            else if (Vector3.Distance(transform.position, wallHitInfo.point) < moveSettings.width)
+            {
+                transform.position = Vector3.Lerp(transform.position, transform.position + transform.forward * (moveSettings.width + 1), 10 * Time.deltaTime);
+            }
+        
 
             moveSettings.forwardVel = 0;
+        }
+        */
+        float distanceToPoints = moveSettings.height / 2 - moveSettings.width;
+        Vector3 pointOne = transform.position + Vector3.up * (distanceToPoints + 3);
+        Vector3 pointTwo = transform.position - Vector3.up * (distanceToPoints);
+        float radius = moveSettings.width * 0.95f;
+        float castDistance = 0.5f;
+        RaycastHit[] hits = Physics.CapsuleCastAll(pointOne, pointTwo, radius, forward, castDistance);
+
+        foreach (RaycastHit objectHit in hits)
+        {
+            if (objectHit.transform.tag == "PlayerColGround") Debug.Log("Ground");
+            if (objectHit.transform.tag == "PlayerColWall") 
+            {
+
+
+                moveSettings.forwardVel = 0; Debug.Log(objectHit.transform.position); 
+            
+            }
         }
     }
     private void DrawDebugLines()
     {
         if (!moveSettings.debug) return;
 
-        Debug.DrawLine(transform.position, transform.position + forward * moveSettings.height * 2, Color.blue);
+        Debug.DrawLine(transform.position, transform.position + forward * moveSettings.height * 2, Color.yellow);
         Debug.DrawLine(transform.position, transform.position - Vector3.up * moveSettings.height, Color.green);
         Debug.DrawLine(transform.position, transform.position + playerCamera.transform.forward * 10, Color.red);
-        Debug.DrawLine(transform.position - transform.forward, transform.position + transform.forward, Color.blue);
+        Debug.DrawLine(transform.position - transform.forward * moveSettings.width, transform.position + transform.forward * moveSettings.width, Color.blue);
         Debug.DrawLine(transform.position - transform.right, transform.position + transform.right, Color.red);
     }
 }
