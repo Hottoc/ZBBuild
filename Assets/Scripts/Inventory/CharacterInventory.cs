@@ -44,3 +44,5 @@ public class CharacterInventory : MonoBehaviour
         Debug.Log(itemToRemove.title + " Has Been Removed From Inventory");
     }
 }
+
+//Add Russian Roullette
