@@ -535,7 +535,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b4f5e2b3b501c8459ea21eaf9896bf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  items: []
 --- !u!1 &85101929
 GameObject:
   m_ObjectHideFlags: 0
@@ -545,6 +544,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 85101930}
+  - component: {fileID: 85101931}
   m_Layer: 0
   m_Name: Inventory
   m_TagString: Untagged
@@ -566,6 +566,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &85101931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 85101929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b4f5e2b3b501c8459ea21eaf9896bf6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &116660728
 GameObject:
   m_ObjectHideFlags: 0
@@ -2532,7 +2544,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 974768482}
-  - component: {fileID: 974768483}
+  - component: {fileID: 974768484}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -2557,7 +2569,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &974768483
+--- !u!114 &974768484
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2566,10 +2578,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 974768481}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 76dfb529a96748d4aaf32854be91115e, type: 3}
+  m_Script: {fileID: 11500000, guid: 62a30d58501aeaa409bbfb332e01c9a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerItems: []
   itemDB: {fileID: 80943177}
 --- !u!4 &988004616 stripped
 Transform:
@@ -4419,9 +4430,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSettings:
-    forwardVel: 0
-    rotateVel: 0
-    vertVel: 0
     walkSpd: 7
     runSpd: 15
     rotationSpd: 5
@@ -4433,9 +4441,11 @@ MonoBehaviour:
     width: 1.2
     heightPadding: 0.07
     maxGroundAngle: 120
-    test: 0
     debug: 0
   physSettings:
+    forwardVel: 0
+    rotateVel: 0
+    vertVel: 0
     downAccel: -20
     termVel: -100
     xtraForce: -300
@@ -4542,6 +4552,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62a30d58501aeaa409bbfb332e01c9a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  itemDB: {fileID: 0}
 --- !u!95 &1902328643
 Animator:
   serializedVersion: 3
@@ -5089,7 +5100,7 @@ PrefabInstance:
         type: 3}
       propertyPath: cI
       value: 
-      objectReference: {fileID: 974768483}
+      objectReference: {fileID: 0}
     - target: {fileID: 7873091697310693066, guid: f13bdccc976578743be458d94d0301e6,
         type: 3}
       propertyPath: m_LocalPosition.x
