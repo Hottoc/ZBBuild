@@ -118,12 +118,12 @@ Material:
     - _FadeSpeed5: 1
     - _FoamSpread: 2.43
     - _GlossMapScale: 1
-    - _Glossiness: 20
+    - _Glossiness: 0.253
     - _GlossyReflections: 1
     - _HeightMapFoamStrength: 1
     - _HeightmapStrength: 0
     - _IntersectionFoamDensity: 0.15
-    - _Metallic: 0
+    - _Metallic: 0.388
     - _Mode: 3
     - _NormalMapBias: 1
     - _NormalMapMoveSpeed1: 0

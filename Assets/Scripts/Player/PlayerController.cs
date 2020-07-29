@@ -7,13 +7,8 @@ public class PlayerController : MonoBehaviour
 {
     [System.Serializable]
     public class MoveSettings
-    {
+    {  
         
-        [Header("[X,Z] Velocity")]
-        public float forwardVel = 0.0f;
-        public float rotateVel = 0.0f;
-        [Header("[Y] Velocity")]
-        public float vertVel = 0.0f;
         [Header("Movement Speeds")]
         public float walkSpd = 7.0f;
         public float runSpd = 15.0f;
@@ -33,6 +28,11 @@ public class PlayerController : MonoBehaviour
     [System.Serializable]
     public class PhysSettings
     {
+        [Header("[X,Z] Velocity")]
+        public float forwardVel = 0.0f;
+        public float rotateVel = 0.0f;
+        [Header("[Y] Velocity")]
+        public float vertVel = 0.0f;
         [Header("Gravity")]
         public float downAccel = -10.0f;
         public float termVel = -10.0f;
@@ -146,14 +146,14 @@ public class PlayerController : MonoBehaviour
     {
         // Get Euler angles To 
         float turnAmount = Mathf.Atan2(forwardDirection.x, forwardDirection.z) * Mathf.Rad2Deg;
-   
-        moveSettings.rotateVel = turnAmount * moveSettings.rotationSpd;
 
-        transform.Rotate(0, moveSettings.rotateVel * Time.deltaTime, 0);
+        physSettings.rotateVel = turnAmount * moveSettings.rotationSpd;
+
+        transform.Rotate(0, physSettings.rotateVel * Time.deltaTime, 0);
         
-        if (moveSettings.rotateVel > 100.0f || moveSettings.rotateVel < -100.0f)
+        if (physSettings.rotateVel > 100.0f || physSettings.rotateVel < -100.0f)
         {
-            float tiltVal = Mathf.Clamp(Mathf.Abs(moveSettings.forwardVel / 8), 0, 1) ;
+            float tiltVal = Mathf.Clamp(Mathf.Abs(physSettings.forwardVel / 8), 0, 1) ;
             transform.Rotate(-10 * tiltVal * Time.deltaTime, 0, 0);
             return;
         }
@@ -172,12 +172,12 @@ public class PlayerController : MonoBehaviour
     /// </summary>
     void Move()
     {
-        velocity.x *= moveSettings.forwardVel;
-        velocity.z *= moveSettings.forwardVel;
-        velocity.y += moveSettings.vertVel;
+        velocity.x *= physSettings.forwardVel;
+        velocity.z *= physSettings.forwardVel;
+        velocity.y += physSettings.vertVel;
 
         transform.position += velocity * Time.deltaTime;
-        animator.SetFloat("Forward Speed", moveSettings.forwardVel);
+        animator.SetFloat("Forward Speed", physSettings.forwardVel);
     }
     /// <summary>
     /// Apply Speed to velocity
@@ -186,30 +186,30 @@ public class PlayerController : MonoBehaviour
     {
         if (!isGrounded)
         {
-            moveSettings.forwardVel = MinSpeed(moveSettings.forwardVel, 5.0f, 0.0f);
+            physSettings.forwardVel = MinSpeed(physSettings.forwardVel, 5.0f, 0.0f);
             return;
         }
 
         if (forwardInput == 0 && sidewardInput == 0)
         {
-            moveSettings.forwardVel = 0;
+            physSettings.forwardVel = 0;
             return;
         }
 
         float setSpeed = (runInput == 0.0f) ? moveSettings.walkSpd : moveSettings.runSpd;
 
-        moveSettings.forwardVel = MaxSpeed(moveSettings.forwardVel, 15.0f, setSpeed);
+        physSettings.forwardVel = MaxSpeed(physSettings.forwardVel, 15.0f, setSpeed);
 
         if (forward.y != 0)
         {
-            velocity.y *= moveSettings.forwardVel;
+            velocity.y *= physSettings.forwardVel;
         }
 
         //Have player Speed decrease rapidly if climbing steep slope
         //Debug.Log(groundAngle);
-        if (groundAngle >= moveSettings.maxGroundAngle && moveSettings.forwardVel > -5f)
+        if (groundAngle >= moveSettings.maxGroundAngle && physSettings.forwardVel > -5f)
         {
-            moveSettings.forwardVel -= 30 * Time.deltaTime;
+            physSettings.forwardVel -= 30 * Time.deltaTime;
         }
 
         
@@ -245,7 +245,7 @@ public class PlayerController : MonoBehaviour
         }
         if (jumpInput != 0 && canJump)
         {
-            moveSettings.vertVel = moveSettings.jumpSpd;
+            physSettings.vertVel = moveSettings.jumpSpd;
             animator.SetBool("Is Jumping", true);
             canJump = false;
         }
@@ -301,7 +301,7 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(transform.position, -Vector3.up, out groundHitInfo, moveSettings.height + moveSettings.heightPadding, moveSettings.ground))
         {
             isGrounded = true;
-            moveSettings.vertVel = 0.0f;
+            physSettings.vertVel = 0.0f;
             animator.SetBool("Is Jumping", false);
             
             if (Vector3.Distance(transform.position, groundHitInfo.point) < moveSettings.height)
@@ -315,8 +315,8 @@ public class PlayerController : MonoBehaviour
     {
         
         if (isGrounded) return;
-        moveSettings.vertVel += (physSettings.downAccel) * Time.deltaTime;
-        if (moveSettings.vertVel < physSettings.termVel) moveSettings.vertVel = physSettings.termVel;
+        physSettings.vertVel += (physSettings.downAccel) * Time.deltaTime;
+        if (physSettings.vertVel < physSettings.termVel) physSettings.vertVel = physSettings.termVel;
         // Amplify Vertical Velocity
         
         //velocity[1] = moveSettings.vertVel;
@@ -357,7 +357,7 @@ public class PlayerController : MonoBehaviour
             {
 
 
-                moveSettings.forwardVel = 0; Debug.Log(objectHit.transform.position); 
+                physSettings.forwardVel = 0; Debug.Log(objectHit.transform.position); 
             
             }
         }
