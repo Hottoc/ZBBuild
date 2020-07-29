@@ -54,7 +54,7 @@ ModelImporter:
       takeName: Player|Idle
       internalID: 0
       firstFrame: 0
-      lastFrame: 58
+      lastFrame: 57
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -83,7 +83,7 @@ ModelImporter:
       takeName: Player|Jump
       internalID: 0
       firstFrame: 0
-      lastFrame: 7
+      lastFrame: 14
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -112,7 +112,7 @@ ModelImporter:
       takeName: Player|Run
       internalID: 0
       firstFrame: 0
-      lastFrame: 11
+      lastFrame: 12
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -262,7 +262,7 @@ ModelImporter:
     tangentImportMode: 3
     normalCalculationMode: 4
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
-    blendShapeNormalImportMode: 1
+    blendShapeNormalImportMode: 0
     normalSmoothingSource: 0
   referencedClips: []
   importAnimation: 1
