@@ -1,46 +1,59 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
+    #region Option Classes
     [System.Serializable]
-    public class MoveSettings
-    {  
-        
+    public class MoveOptions
+    {
         [Header("Movement Speeds")]
-        public float walkSpd = 7.0f;
-        public float runSpd = 15.0f;
-        public float rotationSpd = 5.0f;
-        public float jumpSpd = 6.0f;
-        [Header("Layer Mask")]
-        public LayerMask ground;
-        [Header("Collisions")]
-        public float height = 3.5f;
-        public float width = 0.5f;
-        public float heightPadding = 0.05f;
+        public float walkSpeed = 7.0f;
+        public float runSpeed = 15.0f;
+        public float rotationSpeed = 3.0f;
+        public float jumpSpeed = 6.0f;
+        public float smoothSpeed = 10.0f;
+        [Header("Other")]
         public float maxGroundAngle = 120;
-        [Header("Debugging")]
-        public bool debug;
+        public bool smooth;
+        public float orginTilt;
     }
 
     [System.Serializable]
-    public class PhysSettings
+    public class PlayerOptions
+    {
+        public float playerHeight = 3.8f;
+    }
+
+    [System.Serializable]
+    public class PhysOptions
     {
         [Header("[X,Z] Velocity")]
-        public float forwardVel = 0.0f;
-        public float rotateVel = 0.0f;
+        private float _forwardVelocity = 0.0f;
         [Header("[Y] Velocity")]
-        public float vertVel = 0.0f;
+        private float _vertVelocity;
+        private float _termVelocity = 50.0f;
+        private float _rotateVelocity = 0.0f;
+        [Header("Jump")]
+        public float jumpForce = 6.0f;
+        public float jumpDecrease = 0.5f;
         [Header("Gravity")]
-        public float downAccel = -10.0f;
-        public float termVel = -10.0f;
-        public float xtraForce = -300.0f;
+        public float gravity = 2.5f;
+        public LayerMask discludePlayer;
+        [Header("References")]
+        public SphereCollider sphereCol;
+        public GameObject playerCamera;
+
+        public float ForwardVelocity { get { return _forwardVelocity; } set { _forwardVelocity = value; } }
+        public float VertVelocity { get { return _vertVelocity; } set { _vertVelocity = value; } }
+        public float TermVelocity { get { return _termVelocity; } set { _termVelocity = value; } }
+        public float RotateVelocity { get { return _rotateVelocity; } set { _rotateVelocity = value; } }
     }
 
     [System.Serializable]
-    public class InputSettings
+    public class InputOptions
     {
         public float inputDelay = 0.1f;
 
@@ -49,111 +62,133 @@ public class PlayerController : MonoBehaviour
         public string JUMP_AXIS = "Jump";
         public string RUN_AXIS = "Run";
     }
+    #endregion
 
-    public enum PlayerState
-    {
-        Idle,
-        Jump,
-        Walk,
-        Run,
-        Swim
-    }
-    //Raycast
-    RaycastHit groundHitInfo;
-    RaycastHit wallHitInfo;
+    #region Option Instances
+    public MoveOptions moveOption = new MoveOptions();
+    public PhysOptions physOption = new PhysOptions();
+    public InputOptions inputOption = new InputOptions();
+    public PlayerOptions playerOption = new PlayerOptions();
+    #endregion 
 
-    // Instance of move settings
-    public MoveSettings moveSettings = new MoveSettings();
-    // Instance of physic settings
-    public PhysSettings physSettings = new PhysSettings();
-    // Instance of input settings
-    public InputSettings inputSettings = new InputSettings();
+    #region Variables
 
-    // Vector3 Structs
-    Vector3 forwardDirection, forward, camForwardDirection, velocity;
 
-    // Variables
-    bool canJump, isGrounded, resetTilt;
+    [Header("Movement Options")]
+    public bool smooth;
+    public float smoothSpeed;
 
-    float forwardInput, sidewardInput, jumpInput, runInput, groundAngle, orginTilt;
-    // Objects & Components
-    GameObject playerCamera = null;
+
     Animator animator = null;
-    #region Properties
-    public bool IsGrounded
-    {
-        get { return isGrounded; }
-        set { isGrounded = value; }
-    }
 
+    //Private Variables
 
-
+    //Movement Vectors
+    private Vector3 velocity;
+    private Vector3 forwardDirection;
+    private Vector3 lastPos;
+    private Vector3 follow;
+    private Transform lastCheck;
 
     #endregion
-    void Start()
-    {
-        // Grab Camera Object
-        playerCamera = GameObject.Find("Player Camera");
-        animator = GetComponent<Animator>();
-        isGrounded = true;
-        orginTilt = transform.eulerAngles.x;
-    }
 
-    void Update()
+    #region Main Methods
+
+    private void Start()
+    {
+        physOption.playerCamera = GameObject.Find("Player Camera");
+        animator = GetComponent<Animator>();
+        moveOption.orginTilt = transform.eulerAngles.x;
+        lastPos = transform.position;
+        lastCheck = transform;
+    }
+    private void Update()
     {
         GetInput();
 
-        
-        GetForward(); //Get The Player Forward Based On Camera Position And Slope Angle
-        CalculateGroundAngle(); //Calculate The Angle Of THe Player Based On Ground Slope
-        CheckGround(); //Check If The Player Is On The Ground
-        CheckWall(); //Check If The Player Is On A Wall
+        Gravity();
 
-        
-        ApplyGravity();
-        ApplySpeed();
-        Jump();
-        DrawDebugLines();
+        SimpleMove();
 
         Rotate();
-        Move();
+
+        Jump();
+
+        SetSpeed();
+
+        FinalMove();
+
+        GroundChecking();
+
+        CollisionCheck();
     }
 
-    /// <summary>
-    /// Input based on Horizontal(a,d), Vertical (w,s), Jump (space), and Run (shift) keys
-    /// </summary>
-    void GetInput()
+    #endregion
+
+    #region Inputs
+    float forwardInput, sidewardInput, jumpInput, runInput;
+    private void GetInput()
     {
-        forwardInput = Input.GetAxis(inputSettings.FORWARD_AXIS); //interpolated
-        sidewardInput = Input.GetAxis(inputSettings.SIDEWARD_AXIS); //interpolated
-        jumpInput = Input.GetAxis(inputSettings.JUMP_AXIS); //non-interpolated
-        runInput = Input.GetAxis(inputSettings.RUN_AXIS); //non-interpolated
+        forwardInput = Input.GetAxis(inputOption.FORWARD_AXIS); //interpolated
+        sidewardInput = Input.GetAxis(inputOption.SIDEWARD_AXIS); //interpolated
+        jumpInput = Input.GetAxis(inputOption.JUMP_AXIS); //non-interpolated
+        runInput = Input.GetAxis(inputOption.RUN_AXIS); //non-interpolated
+    }
+    #endregion
+
+    #region Movement Methods
+
+    private void SimpleMove()
+    {
+        forwardDirection = forwardInput * GetCamForward() + sidewardInput * physOption.playerCamera.transform.right;
+
+        if (forwardDirection.magnitude > 1.0f) forwardDirection.Normalize();
+
+        forwardDirection = transform.InverseTransformDirection(forwardDirection);
+        velocity += follow + (transform.forward * forwardDirection.magnitude);
+        //move = new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical"));
+        //velocity += move;
     }
 
-    /// <summary>
-    /// Direction relative to the camera object's rotation
-    /// </summary>
-    /// <returns></returns>
-    public Vector3 GetCamForward()
+    private void FinalMove()
     {
-        return Vector3.Scale(playerCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
+
+        //Vector3 vel = new Vector3(velocity.x, velocity.y, velocity.z) * movementSpeed;
+        //velocity = (new Vector3 (move.x, -currentGravity, move.z)+vel)*movementSpeed;
+        //velocity = transform.TransformDirection (velocity);
+        //vel = transform.TransformDirection(vel);
+
+        velocity.y -= physOption.VertVelocity * 7;
+
+        velocity.x *= physOption.ForwardVelocity;
+        velocity.z *= physOption.ForwardVelocity;
+
+        transform.position += follow + velocity * Time.deltaTime;
+        animator.SetFloat("Forward Speed", physOption.ForwardVelocity);
+        velocity = Vector3.zero;
+
+    }
+
+    private Vector3 GetCamForward()
+    {
+        return Vector3.Scale(physOption.playerCamera.transform.forward, new Vector3(1, 0, 1)).normalized;
     }
 
     /// <summary>
     /// Rotate toward the calculated angle
     /// </summary>
-    void Rotate()
+    private void Rotate()
     {
         // Get Euler angles To 
         float turnAmount = Mathf.Atan2(forwardDirection.x, forwardDirection.z) * Mathf.Rad2Deg;
 
-        physSettings.rotateVel = turnAmount * moveSettings.rotationSpd;
+        physOption.RotateVelocity = turnAmount * moveOption.rotationSpeed;
 
-        transform.Rotate(0, physSettings.rotateVel * Time.deltaTime, 0);
-        
-        if (physSettings.rotateVel > 100.0f || physSettings.rotateVel < -100.0f)
+        transform.Rotate(0, physOption.RotateVelocity * Time.deltaTime, 0);
+
+        if (physOption.RotateVelocity > 100.0f || physOption.RotateVelocity < -100.0f)
         {
-            float tiltVal = Mathf.Clamp(Mathf.Abs(physSettings.forwardVel / 8), 0, 1) ;
+            float tiltVal = Mathf.Clamp(Mathf.Abs(physOption.ForwardVelocity / 8), 0, 1);
             transform.Rotate(-10 * tiltVal * Time.deltaTime, 0, 0);
             return;
         }
@@ -161,215 +196,218 @@ public class PlayerController : MonoBehaviour
         //transform.localRotation = Quaternion.Slerp(transform.localRotation, Quaternion.Euler(new Vector3(moveSettings.forwardVel / 10 * tiltVal, 0, forwardDirection.z / 14 * tiltVal)), Time.deltaTime * 2.0f);
     }
 
-    void restoreRotation()
+    private void restoreRotation()
     {
-        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(orginTilt, transform.eulerAngles.y, 0), Time.deltaTime * 5);
+        transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(moveOption.orginTilt, transform.eulerAngles.y, 0), Time.deltaTime * 5);
         return;
     }
 
-    /// <summary>
-    /// Apply Velocity to the Player's position
-    /// </summary>
-    void Move()
-    {
-        velocity.x *= physSettings.forwardVel;
-        velocity.z *= physSettings.forwardVel;
-        velocity.y += physSettings.vertVel;
+    #endregion
 
-        transform.position += velocity * Time.deltaTime;
-        animator.SetFloat("Forward Speed", physSettings.forwardVel);
-    }
-    /// <summary>
-    /// Apply Speed to velocity
-    /// </summary>
-    void ApplySpeed()
+    #region Speed
+    private void SetSpeed()
     {
-        if (!isGrounded)
+        if (!grounded)
         {
-            physSettings.forwardVel = MinSpeed(physSettings.forwardVel, 5.0f, 0.0f);
+            physOption.ForwardVelocity = MinSpeed(physOption.ForwardVelocity, 2.0f, 0.0f);
             return;
         }
 
         if (forwardInput == 0 && sidewardInput == 0)
         {
-            physSettings.forwardVel = 0;
+            physOption.ForwardVelocity = 0;
             return;
         }
 
-        float setSpeed = (runInput == 0.0f) ? moveSettings.walkSpd : moveSettings.runSpd;
+        float setSpeed = (runInput == 0.0f) ? moveOption.walkSpeed : moveOption.runSpeed;
 
-        physSettings.forwardVel = MaxSpeed(physSettings.forwardVel, 15.0f, setSpeed);
-
-        if (forward.y != 0)
-        {
-            velocity.y *= physSettings.forwardVel;
-        }
-
-        //Have player Speed decrease rapidly if climbing steep slope
-        //Debug.Log(groundAngle);
-        if (groundAngle >= moveSettings.maxGroundAngle && physSettings.forwardVel > -5f)
-        {
-            physSettings.forwardVel -= 30 * Time.deltaTime;
-        }
-
-        
-
+        physOption.ForwardVelocity = MaxSpeed(physOption.ForwardVelocity, 15.0f, setSpeed);
     }
-    /// <summary>
-    /// Build Player speed gradually until reaches max.
-    /// </summary>
-    /// <param name="current"></param>
-    /// <param name="max"></param>
-    /// <returns>"current"</returns>
-    float MaxSpeed(float current, float speed, float max)
+    private float MaxSpeed(float current, float speed, float max)
     {
         current += speed * Time.deltaTime;
         if (current > max) { current = max; }
 
         return current;
     }
-    float MinSpeed(float current, float speed, float min)
+    private float MinSpeed(float current, float speed, float min)
     {
         current -= speed * Time.deltaTime;
         if (current < min) { current = min; }
 
         return current;
     }
-    void Jump()
-    {
-        if (!isGrounded) return;
 
-        if (jumpInput == 0)
-        {
-            canJump = true;
-        }
-        if (jumpInput != 0 && canJump)
-        {
-            physSettings.vertVel = moveSettings.jumpSpd;
-            animator.SetBool("Is Jumping", true);
-            canJump = false;
-        }
-        //velocity.y += moveSettings.vertVel;
+    #endregion
+
+    #region Gravity/Grounding
+    //Gravity Private Variables
+    private bool grounded;
+
+    //Grounded Private Variables
+    private Vector3 liftPoint = new Vector3(0, 1.2f, 0);
+    private RaycastHit groundHit;
+    private Vector3 groundCheckPoint = new Vector3(0, -0.87f, 0);
+
+    private void Gravity()
+    {
+        if (grounded) { return; }
+        
+        physOption.VertVelocity += physOption.gravity * 5 * Time.deltaTime;
+
+        if (physOption.VertVelocity > physOption.TermVelocity) physOption.VertVelocity = physOption.TermVelocity;
     }
 
-    /// <summary>
-    /// Calculate the player object's forward direction
-    /// </summary>
-    void CalculateForward()
+    private void GroundChecking()
     {
-        if (!isGrounded)
+        Ray ray = new Ray(transform.TransformPoint(liftPoint), Vector3.down);
+        RaycastHit tempHit = new RaycastHit();
+
+        if (Physics.SphereCast(ray, 0.17f, out tempHit, playerOption.playerHeight, physOption.discludePlayer))
         {
-            forward = transform.forward;
-            return;
-        }
-
-        forward = Vector3.Cross(groundHitInfo.normal, -transform.right);
-    }
-
-    void GetForward()
-    {
-        CalculateForward();
-
-        forwardDirection = forwardInput * GetCamForward() + sidewardInput * playerCamera.transform.right;
-
-        if (forwardDirection.magnitude > 1.0f) forwardDirection.Normalize();
-
-        forwardDirection = transform.InverseTransformDirection(forwardDirection);
-        if (groundAngle < moveSettings.maxGroundAngle)
-        {
-            velocity = (forward * forwardDirection.magnitude);
+            GroundConfirm(tempHit, ray);
         }
         else
         {
-            velocity = forward;
+            follow = Vector3.zero;
+            grounded = false;
+        }
+
+    }
+    private void GroundConfirm(RaycastHit tempHit, Ray ray)
+    {
+        Collider[] col = new Collider[3];
+        int num = Physics.OverlapSphereNonAlloc(transform.TransformPoint(groundCheckPoint), playerOption.playerHeight / 2, col, physOption.discludePlayer);
+
+        grounded = false;
+        follow = Vector3.zero;
+
+        for (int i = 0; i < num; i++)
+        {
+            if (col[i].transform == tempHit.transform)
+            {
+                groundHit = tempHit;
+                grounded = true;
+                physOption.VertVelocity = 0;
+                //Snapping 
+                if (inputJump == false)
+                {
+                    if (!smooth)
+                    {
+                        transform.position = new Vector3(transform.position.x, (groundHit.point.y + playerOption.playerHeight / 2), transform.position.z);
+                    }
+                    else
+                    {
+                        transform.position = Vector3.Lerp(transform.position, new Vector3(transform.position.x, (groundHit.point.y + playerOption.playerHeight / 2), transform.position.z), smoothSpeed * Time.deltaTime);
+                    }
+                    Vector3 offset = col[i].transform.position - lastPos;
+                    if ((offset != Vector3.zero ) && groundHit.transform == lastCheck)
+                    {
+                        follow.x = offset.x;
+                        follow.z = offset.z;
+                        follow.y = offset.y;
+                    }
+                    lastPos = col[i].transform.position;
+                    lastCheck = groundHit.transform;
+                }
+
+                break;
+            }
+        }
+        
+        if (num <= 1 && tempHit.distance <= 3.1f && inputJump == false)
+        {
+            if (col[0])
+            {
+                //Ray ray = new Ray(transform.TransformPoint(liftPoint), Vector3.down);
+                RaycastHit hit;
+
+                if (Physics.Raycast(ray, out hit, 3.1f, physOption.discludePlayer))
+                {
+                    if (hit.transform != col[0].transform)
+                    {
+                        grounded = false;
+                        follow = Vector3.zero;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    #endregion
+
+    #region Collision
+    Collider[] overlaps = new Collider[4];
+    private void CollisionCheck()
+    {
+        int num = Physics.OverlapSphereNonAlloc(transform.TransformPoint(physOption.sphereCol.center), physOption.sphereCol.radius, overlaps, physOption.discludePlayer, QueryTriggerInteraction.UseGlobal);
+        for (int i = 0; i < num; i++)
+        {
+            Transform t = overlaps[i].transform;
+            Vector3 dir;
+            float dist;
+            
+            if (Physics.ComputePenetration(physOption.sphereCol, transform.position, transform.rotation, overlaps[i], t.position, t.rotation, out dir, out dist))
+            {
+                Vector3 penetrationVector = dir * dist;
+                Vector3 velocityProjected = Vector3.Project(velocity, -dir);
+                //transform.position = transform.position + penetrationVector;
+                transform.position = Vector3.Lerp(transform.position, transform.position + penetrationVector, (20 + physOption.ForwardVelocity) * Time.deltaTime);
+                physOption.ForwardVelocity = MinSpeed(physOption.ForwardVelocity, 10.0f, 0.0f);
+                //physOption.ForwardVelocity -= velocityProjected.x;
+                velocity -= velocityProjected;
+            }
         }
     }
 
-    void CalculateGroundAngle()
+    #endregion
+
+    #region Jumping
+
+    private bool inputJump = false;
+    private bool onJump;
+    private float lastInput = 0;
+    private void Jump()
     {
-        
-        if (!isGrounded)
+        if (!grounded)
         {
-            groundAngle = 90;
+            physOption.VertVelocity -= physOption.jumpDecrease * Time.deltaTime;
+            onJump = false;
             return;
         }
-        
-        groundAngle = Vector3.Angle(groundHitInfo.normal, transform.forward);
-    }
-    void CheckGround()
-    {
-        if (Physics.Raycast(transform.position, -Vector3.up, out groundHitInfo, moveSettings.height + moveSettings.heightPadding, moveSettings.ground))
+
+        if (physOption.VertVelocity > 0.2f || physOption.VertVelocity <= 0.2f)
         {
-            isGrounded = true;
-            physSettings.vertVel = 0.0f;
-            animator.SetBool("Is Jumping", false);
-            
-            if (Vector3.Distance(transform.position, groundHitInfo.point) < moveSettings.height)
-            {
-                transform.position = Vector3.Lerp(transform.position, transform.position + Vector3.up * (moveSettings.height + 3), 5 * Time.deltaTime);
-            }
+            physOption.VertVelocity = 0;
+            inputJump = false;
         }
-        else { isGrounded = false; } 
-    }
-    void ApplyGravity()
-    {
-        
-        if (isGrounded) return;
-        physSettings.vertVel += (physSettings.downAccel) * Time.deltaTime;
-        if (physSettings.vertVel < physSettings.termVel) physSettings.vertVel = physSettings.termVel;
-        // Amplify Vertical Velocity
-        
-        //velocity[1] = moveSettings.vertVel;
 
-    }
-    void CheckWall()
-    {
-        /*
-        bool forwardCheck = Physics.Raycast(transform.position, transform.forward, out wallHitInfo, moveSettings.width + moveSettings.heightPadding, moveSettings.ground);
-        bool backwardCheck = Physics.Raycast(transform.position, -transform.forward, out wallHitInfo, moveSettings.width + moveSettings.heightPadding, moveSettings.ground);
-        if (forwardCheck || backwardCheck)
+        if (jumpInput == 1 && lastInput == 0) 
         {
-            if (Vector3.Distance(transform.position, wallHitInfo.point) > moveSettings.width )
-            {
-                //transform.position = Vector3.Lerp(transform.position, transform.position - transform.forward * (moveSettings.width - 1), 5 * Time.deltaTime);
-                transform.position = Vector3.Lerp(transform.position, transform.position - transform.forward * (moveSettings.width - 1), 5 * Time.deltaTime);
-            }
-            else if (Vector3.Distance(transform.position, wallHitInfo.point) < moveSettings.width)
-            {
-                transform.position = Vector3.Lerp(transform.position, transform.position + transform.forward * (moveSettings.width + 1), 10 * Time.deltaTime);
-            }
-        
-
-            moveSettings.forwardVel = 0;
+            onJump = true;
         }
-        */
-        float distanceToPoints = moveSettings.height / 2 - moveSettings.width;
-        Vector3 pointOne = transform.position + Vector3.up * (distanceToPoints + 3);
-        Vector3 pointTwo = transform.position - Vector3.up * (distanceToPoints);
-        float radius = moveSettings.width * 0.95f;
-        float castDistance = 0.5f;
-        RaycastHit[] hits = Physics.CapsuleCastAll(pointOne, pointTwo, radius, forward, castDistance);
 
-        foreach (RaycastHit objectHit in hits)
+        if (onJump)
         {
-            if (objectHit.transform.tag == "PlayerColGround") Debug.Log("Ground");
-            if (objectHit.transform.tag == "PlayerColWall") 
-            {
-
-
-                physSettings.forwardVel = 0; Debug.Log(objectHit.transform.position); 
-            
-            }
+            inputJump = true;
+            physOption.VertVelocity -= physOption.jumpForce;
         }
+        lastInput = jumpInput;
     }
-    private void DrawDebugLines()
+    #endregion
+    private void OnDrawGizmos()
     {
-        if (!moveSettings.debug) return;
-
-        Debug.DrawLine(transform.position, transform.position + forward * moveSettings.height * 2, Color.yellow);
-        Debug.DrawLine(transform.position, transform.position - Vector3.up * moveSettings.height, Color.green);
-        Debug.DrawLine(transform.position, transform.position + playerCamera.transform.forward * 10, Color.red);
-        Debug.DrawLine(transform.position - transform.forward * moveSettings.width, transform.position + transform.forward * moveSettings.width, Color.blue);
-        Debug.DrawLine(transform.position - transform.right, transform.position + transform.right, Color.red);
-    }
-}
+        Vector3 boxPos = new Vector3(transform.position.x, transform.position.y - playerOption.playerHeight / 2 - (Vector3.one / 2).y, transform.position.z);
+        Vector3 boxSize = Vector3.one;
+        if (!grounded)
+        {
+            Gizmos.color = Color.red;
+        }
+        else
+        {
+            Gizmos.color = Color.green;
+        }
+        Gizmos.DrawWireCube(boxPos, boxSize);
+    } 
+} 
+  
