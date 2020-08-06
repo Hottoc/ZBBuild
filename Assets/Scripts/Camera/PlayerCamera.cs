@@ -20,10 +20,10 @@ public class PlayerCamera : MonoBehaviour
     private float distance = 30.0f;
     private float distanceMin = 10.0f; //Min Distance on Camera Zoom
     private float distanceMax = 40.0f; //Max Distance on Camera Zoom
-
+    public Vector3 velocity = Vector3.zero;
     float x = 0.0f;
     float y = 0.0f;
-
+    float newDistanceMin;
     // Use this for initialization
     private void Start()
     {
@@ -31,12 +31,13 @@ public class PlayerCamera : MonoBehaviour
 
         x = angles.y;
         y = angles.x;
+
+        newDistanceMin = distanceMin;
     }
 
     void LateUpdate()
     {
         //Update This with Switch to improve performance.
-        
         if (target)
         {
             if (Input.GetMouseButton(1))
@@ -45,13 +46,12 @@ public class PlayerCamera : MonoBehaviour
                 x += Input.GetAxis("Mouse X") * xSpeed * distance * 5 * Time.deltaTime;
                 y -= Input.GetAxis("Mouse Y") * ySpeed * 5 * Time.deltaTime;
 
-                distance = Mathf.Clamp(distance - (Input.GetAxis("Mouse ScrollWheel") * zSpeed * Time.deltaTime), distanceMin, distanceMax);
+                distance = Mathf.Clamp(distance - (Input.GetAxis("Mouse ScrollWheel") * zSpeed * Time.deltaTime), newDistanceMin, distanceMax);
             }
             else
             {
                 Cursor.lockState = CursorLockMode.None;
             }
-
 
             // Reset The Value Of Rotation Angle To 0 When Exceeding A 360 Degree Angle.
             if (x > 360.0f || x < -360.0f)
@@ -59,35 +59,45 @@ public class PlayerCamera : MonoBehaviour
                 x = 0;
             }
 
-
             y = ClampAngle(y, yMinLimit, yMaxLimit);
-
-            
-            Quaternion rotation = Quaternion.Euler(y, x, 0);
-
 
             //Uncomment to prevent camera from moving through objects with colliders
             RaycastHit hit;
 
+            float test = 0;
             
-            if (Physics.Linecast(target.position, transform.position, out hit))
+            if (Physics.Raycast(transform.position, transform.forward, out hit, 5))
             {
-
-                distance -= hit.distance * 5 * Time.deltaTime;
-
+                newDistanceMin = hit.transform.position.z;
+                if (distance > newDistanceMin && distance < distanceMax)
+                {
+                    distance += hit.distance * 5 * Time.deltaTime;
+                }
+                else
+                {
+                    test += 2;
+                }
+                
+            }
+            else
+            {
+                newDistanceMin = distanceMin;
             }
             
+            Quaternion rotation = Quaternion.Euler(y + test, x, 0);
 
             Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
 
             Vector3 position = rotation * negDistance + target.position;
 
-            transform.rotation = rotation;
+            //transform.rotation = rotation;
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 8f * Time.deltaTime);
 
-            transform.position = position;
+            //transform.position = position;
 
+            //transform.position = Vector3.SmoothDamp(transform.position, position, ref velocity, .3f);
+            transform.position = Vector3.Lerp(transform.position, position, 10f * Time.deltaTime);
         }
-        
     }
 
     public static float ClampAngle(float angle, float min, float max)
@@ -100,7 +110,6 @@ public class PlayerCamera : MonoBehaviour
         {
             angle -= 360F;
         }
-            
         return Mathf.Clamp(angle, min, max);
     }
 }
