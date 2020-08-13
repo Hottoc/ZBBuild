@@ -2,34 +2,52 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Inventory;
+using UnityEditor;
 
 public class PlayerManager : MonoBehaviour
 {
+    Player player = new Player(100);
     #region Player Stats
+    GameObject mybone;
     private int _maxHealth = 100;
-
-    private int _currentHealth = 100;
 
     private int _currentLevel;
 
     private int _currentXP;
-
-    public int CurrentHealth
+    GameObject newequip;
+    public void Start()
     {
-        get { return _currentHealth; }
+        mybone = GameObject.Find("Player:RightArmBone_end");
     }
-
-    public void TakeDamage (int damage)
+    public void Update()
     {
-        _currentHealth -= damage;
-    }
-
-    public void AddHealth (int health)
-    {
-        _currentHealth += health;
-        if (_currentHealth >= _maxHealth)
+        if(Input.GetKeyDown(KeyCode.H))
         {
-            _currentHealth = _maxHealth;
+            EquipItem(GameObject.Find("HammerTest"));
+            AddHealth(2.0f);
+        }
+
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            UnequipItem(GameObject.Find("HammerTest"));
+        }
+    }
+    public float CurrentHealth
+    {
+        get { return player.currentHealth; }
+    }
+
+    public void TakeDamage (float damage)
+    {
+        player.currentHealth -= damage;
+    }
+
+    public void AddHealth (float health)
+    {
+        player.currentHealth += health;
+        if (player.currentHealth >= player.maxHealth)
+        {
+            player.currentHealth = player.maxHealth;
         }
     }
 
@@ -80,6 +98,18 @@ public class PlayerManager : MonoBehaviour
         //Remove Item From Player Inventory List
         _playerItems.Remove(itemToRemove);
         Debug.Log(_playerItems[id].title + " Has Been Removed From Inventory");
+    }
+
+    public void EquipItem(GameObject item)
+    {
+        newequip = Instantiate(item, new Vector3(mybone.transform.position.x, mybone.transform.position.y, mybone.transform.position.z), mybone.transform.rotation);
+
+        newequip.transform.parent = mybone.transform;
+    }
+
+    public void UnequipItem(GameObject item)
+    {
+        Destroy(newequip);
     }
     #endregion
 }

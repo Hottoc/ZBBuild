@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using UnityEngine;
-
+using System.Linq;
 public class PlayerController : MonoBehaviour
 {
     #region Option Classes
@@ -98,6 +98,7 @@ public class PlayerController : MonoBehaviour
     {
         physOption.playerCamera = GameObject.Find("Player Camera");
         animator = GetComponent<Animator>();
+        physOption.sphereCol = GetComponent<SphereCollider>();
         moveOption.orginTilt = transform.eulerAngles.x;
         lastPos = transform.position;
         lastCheck = transform;
@@ -152,7 +153,6 @@ public class PlayerController : MonoBehaviour
 
     private void FinalMove()
     {
-
         //Vector3 vel = new Vector3(velocity.x, velocity.y, velocity.z) * movementSpeed;
         //velocity = (new Vector3 (move.x, -currentGravity, move.z)+vel)*movementSpeed;
         //velocity = transform.TransformDirection (velocity);
@@ -352,8 +352,7 @@ public class PlayerController : MonoBehaviour
                 Vector3 penetrationVector = dir * dist;
                 Vector3 velocityProjected = Vector3.Project(velocity, -dir);
                 //transform.position = transform.position + penetrationVector;
-                transform.position = Vector3.Lerp(transform.position, transform.position + penetrationVector, (20 + physOption.ForwardVelocity) * Time.deltaTime);
-                physOption.ForwardVelocity = MinSpeed(physOption.ForwardVelocity, 10.0f, 0.0f);
+                transform.position = Vector3.Lerp(transform.position, transform.position + penetrationVector, 20 + physOption.ForwardVelocity * Time.deltaTime);
                 //physOption.ForwardVelocity -= velocityProjected.x;
                 velocity -= velocityProjected;
             }
