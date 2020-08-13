@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayerCamera : MonoBehaviour
 {
-    public Transform target;
+    public GameObject target;
 
     World world;
 
@@ -27,6 +27,7 @@ public class PlayerCamera : MonoBehaviour
     // Use this for initialization
     private void Start()
     {
+        target = GameObject.Find("PlayerOne");
         Vector3 angles = transform.eulerAngles;
 
         x = angles.y;
@@ -88,15 +89,15 @@ public class PlayerCamera : MonoBehaviour
 
             Vector3 negDistance = new Vector3(0.0f, 0.0f, -distance);
 
-            Vector3 position = rotation * negDistance + target.position;
+            Vector3 position = rotation * negDistance + target.transform.position;
 
             //transform.rotation = rotation;
-            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 8f * Time.deltaTime);
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotation, 18f * Time.deltaTime);
 
             //transform.position = position;
 
             //transform.position = Vector3.SmoothDamp(transform.position, position, ref velocity, .3f);
-            transform.position = Vector3.Lerp(transform.position, position, 10f * Time.deltaTime);
+            transform.position = Vector3.Lerp(transform.position, position, 20f * Time.deltaTime);
         }
     }
 

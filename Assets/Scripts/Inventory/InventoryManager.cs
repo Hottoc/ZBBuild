@@ -34,6 +34,17 @@ namespace Inventory
 				}
 			}
 		}
+
+		public GameObject CreateObjRef(GameObject Prefab, Transform parent)
+		{
+			return Instantiate(Prefab, parent);
+		}
+
+		public void RemoveObjRef(GameObject objRef)
+		{
+			//Delete(objRef);
+			objRef = null;
+		}
 	}
 }
 
